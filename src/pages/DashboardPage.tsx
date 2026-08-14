@@ -1,4 +1,29 @@
+import MetricCard from '../components/dashboard/MetricCard'
 import PageHeader from '../components/layout/PageHeader'
+import './DashboardPage.css'
+
+const metrics = [
+    {
+        label: 'Total suppliers',
+        value: '128',
+        description: 'Active supplier records',
+    },
+    {
+        label: 'High risk',
+        value: '9',
+        description: 'Require immediate review',
+    },
+    {
+        label: 'Pending assessments',
+        value: '17',
+        description: 'Awaiting evaluation',
+    },
+    {
+        label: 'Compliance rate',
+        value: '92%',
+        description: 'Documents up to date',
+    },
+]
 
 function DashboardPage() {
     return (
@@ -9,9 +34,19 @@ function DashboardPage() {
                 actionLabel="Add supplier"
             />
 
-            <section className="content-panel" aria-labelledby="overview-heading">
+            <section aria-labelledby="overview-heading">
                 <h2 id="overview-heading">Risk overview</h2>
-                <p>Supplier metrics will appear here.</p>
+
+                <div className="metrics-grid">
+                    {metrics.map((metric) => (
+                        <MetricCard
+                            key={metric.label}
+                            label={metric.label}
+                            value={metric.value}
+                            description={metric.description}
+                        />
+                    ))}
+                </div>
             </section>
         </>
     )
