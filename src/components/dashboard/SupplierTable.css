@@ -1,0 +1,78 @@
+.supplier-table-container {
+    overflow-x: auto;
+    background-color: #ffffff;
+    border: 1px solid #eaecf0;
+    border-radius: 12px;
+}
+
+.supplier-table {
+    width: 100%;
+    min-width: 850px;
+    border-collapse: collapse;
+}
+
+.supplier-table th,
+.supplier-table td {
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid #eaecf0;
+}
+
+.supplier-table th {
+    color: #667085;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.supplier-table td {
+    color: #344054;
+    font-size: 0.875rem;
+}
+
+.supplier-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.supplier-name {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.supplier-name strong {
+    color: #101828;
+}
+
+.supplier-name span {
+    color: #98a2b3;
+    font-size: 0.75rem;
+}
+
+.risk-badge {
+    display: inline-flex;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.risk-low {
+    color: #067647;
+    background-color: #ecfdf3;
+}
+
+.risk-medium {
+    color: #b54708;
+    background-color: #fffaeb;
+}
+
+.risk-high {
+    color: #b42318;
+    background-color: #fef3f2;
+}
+
+.assessment-status {
+    text-transform: capitalize;
+}
