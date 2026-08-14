@@ -3,6 +3,7 @@ import './SupplierTable.css'
 
 type SupplierTableProps = {
     suppliers: Supplier[]
+    onSelectSupplier: (supplier: Supplier) => void
 }
 
 const dateFormatter = new Intl.DateTimeFormat('en-IE', {
@@ -19,7 +20,7 @@ function formatLabel(value: string) {
     return value.replaceAll('-', ' ')
 }
 
-function SupplierTable({ suppliers }: SupplierTableProps) {
+function SupplierTable({ suppliers, onSelectSupplier }: SupplierTableProps) {
     return (
         <div className="supplier-table-container">
             <table
@@ -43,7 +44,17 @@ function SupplierTable({ suppliers }: SupplierTableProps) {
                         <tr key={supplier.id}>
                             <td>
                                 <div className="supplier-name">
-                                    <strong>{supplier.name}</strong>
+                                    <div className="supplier-name">
+                                        <button
+                                            type="button"
+                                            className="supplier-button"
+                                            onClick={() => onSelectSupplier(supplier)}
+                                        >
+                                            {supplier.name}
+                                        </button>
+
+                                        <span>{supplier.id}</span>
+                                    </div>
                                     <span>{supplier.id}</span>
                                 </div>
                             </td>

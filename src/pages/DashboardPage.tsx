@@ -1,6 +1,11 @@
 import MetricCard from '../components/dashboard/MetricCard'
 import PageHeader from '../components/layout/PageHeader'
 import './DashboardPage.css'
+import { useState } from 'react'
+import SupplierDetailsPanel from '../components/dashboard/SupplierDetailsPanel'
+import type { Supplier } from '../types/supplier'
+import { mockSuppliers } from '../data/suppliers'
+import SupplierTable from '../components/dashboard/SupplierTable'
 
 const metrics = [
     {
@@ -26,6 +31,9 @@ const metrics = [
 ]
 
 function DashboardPage() {
+    const [selectedSupplier, setSelectedSupplier] =
+        useState<Supplier | null>(null)
+
     return (
         <>
             <PageHeader
@@ -47,6 +55,18 @@ function DashboardPage() {
                         />
                     ))}
                 </div>
+
+                <SupplierTable
+                    suppliers={mockSuppliers}
+                    onSelectSupplier={(supplier) => setSelectedSupplier(supplier)}
+                />
+
+                {selectedSupplier && (
+                    <SupplierDetailsPanel
+                        supplier={selectedSupplier}
+                        onClose={() => setSelectedSupplier(null)}
+                    />
+                )}
             </section>
         </>
     )

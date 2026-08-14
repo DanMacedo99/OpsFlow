@@ -40,8 +40,25 @@
     gap: 4px;
 }
 
-.supplier-name strong {
-    color: #101828;
+.supplier-button {
+    padding: 0;
+    color: #155eef;
+    font: inherit;
+    font-weight: 600;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+}
+
+.supplier-button:hover {
+    text-decoration: underline;
+}
+
+.supplier-button:focus-visible {
+    outline: 2px solid #155eef;
+    outline-offset: 3px;
+    border-radius: 2px;
 }
 
 .supplier-name span {
