@@ -1,0 +1,94 @@
+.app-shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  padding: 24px 16px;
+  color: #ffffff;
+  background-color: #101828;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 12px 32px;
+}
+
+.brand strong {
+  font-size: 1.25rem;
+}
+
+.brand span {
+  color: #98a2b3;
+  font-size: 0.875rem;
+}
+
+.sidebar ul {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.nav-link {
+  width: 100%;
+  padding: 10px 12px;
+  color: #d0d5dd;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: #ffffff;
+  background-color: #344054;
+}
+
+.main-content {
+  padding: 32px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.page-header h1 {
+  margin: 4px 0 0;
+}
+
+.eyebrow {
+  margin: 0;
+  color: #667085;
+  font-size: 0.875rem;
+}
+
+.primary-button {
+  padding: 10px 16px;
+  color: #ffffff;
+  background-color: #155eef;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.content-panel {
+  padding: 24px;
+  background-color: #ffffff;
+  border: 1px solid #eaecf0;
+  border-radius: 12px;
+}
+
+.content-panel h2 {
+  margin-top: 0;
+}
