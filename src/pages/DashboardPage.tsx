@@ -24,33 +24,58 @@ function createNextSupplierId(suppliers: Supplier[]) {
     return `SUP-${String(highestId + 1).padStart(3, '0')}`
 }
 
-const metrics = [
-    {
-        label: 'Total suppliers',
-        value: '128',
-        description: 'Active supplier records',
-    },
-    {
-        label: 'High risk',
-        value: '9',
-        description: 'Require immediate review',
-    },
-    {
-        label: 'Pending assessments',
-        value: '17',
-        description: 'Awaiting evaluation',
-    },
-    {
-        label: 'Compliance rate',
-        value: '92%',
-        description: 'Documents up to date',
-    },
-]
+
 
 function DashboardPage() {
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null)
     const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false)
     const [suppliers, setSuppliers] = useState<Supplier[]>(mockSuppliers)
+
+    const highRiskSuppliers = suppliers.filter(
+        (supplier) => supplier.riskLevel === 'high',
+    ).length
+
+    const pendingAssessments = suppliers.filter(
+        (supplier) => supplier.assessmentStatus === 'pending',
+    ).length
+
+    const assessedSuppliers = suppliers.filter(
+        (supplier) => supplier.lastAssessmentDate !== null,
+    )
+
+    const averageCompliance =
+        assessedSuppliers.length === 0
+            ? 0
+            : Math.round(
+                assessedSuppliers.reduce(
+                    (total, supplier) =>
+                        total + supplier.complianceScore,
+                    0,
+                ) / assessedSuppliers.length,
+            )
+
+    const metrics = [
+        {
+            label: 'Total suppliers',
+            value: String(suppliers.length),
+            description: 'Supplier records',
+        },
+        {
+            label: 'High risk',
+            value: String(highRiskSuppliers),
+            description: 'Require immediate review',
+        },
+        {
+            label: 'Pending assessments',
+            value: String(pendingAssessments),
+            description: 'Awaiting evaluation',
+        },
+        {
+            label: 'Average compliance',
+            value: `${averageCompliance}%`,
+            description: 'Across assessed suppliers',
+        },
+    ]
 
     function handleDeleteSupplier(supplierId: string) {
         setSuppliers((currentSuppliers) =>
