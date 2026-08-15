@@ -1,75 +1,203 @@
-# React + TypeScript + Vite
+# OpsFlow
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modular business operations platform focused on supplier risk, compliance monitoring, assessments and operational workflows.
 
-Currently, two official plugins are available:
+The first OpsFlow module is a **Supplier Risk and Compliance Dashboard**, built to demonstrate how frontend engineering can support real business processes through typed data models, reusable components and accessible interfaces.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Current Features
 
-## React Compiler
+- Supplier risk and compliance dashboard
+- Risk overview metric cards
+- Typed supplier data model
+- Supplier table with:
+  - Risk level
+  - Assessment status
+  - Compliance score
+  - Last assessment date
+- Supplier details panel
+- Local supplier creation
+- Supplier deletion with confirmation
+- Reusable React components
+- Adaptive CSS Grid layouts
+- Semantic HTML and keyboard focus states
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Current Project Status
 
-## Expanding the ESLint configuration
+OpsFlow is currently in active frontend development.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Supplier records are stored temporarily in React state and initialised from mock data. Creating or deleting a supplier does not persist after refreshing the page.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+A backend API and PostgreSQL persistence will be added in a later development stage.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Tech Stack
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Frontend
 
+- React
+- TypeScript
+- Vite
+- CSS
+- HTML5 semantic elements
+
+### Development Quality
+
+- ESLint
+- TypeScript static type checking
+- Production build validation
+- Git and GitHub
+- Component-based architecture
+
+## Project Structure
+
+```text
+src/
+├── components/
+│   ├── dashboard/
+│   │   ├── AddSupplierForm.tsx
+│   │   ├── MetricCard.tsx
+│   │   ├── SupplierDetailsPanel.tsx
+│   │   └── SupplierTable.tsx
+│   └── layout/
+│       ├── PageHeader.tsx
+│       └── Sidebar.tsx
+├── data/
+│   └── suppliers.ts
+├── pages/
+│   └── DashboardPage.tsx
+├── types/
+│   └── supplier.ts
+├── App.tsx
+└── main.tsx
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Getting Started
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Requirements
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- Node.js
+- npm
+- Git
 
+### Installation
+
+Clone the repository:
+
+```bash
+git clone git@github.com:DanMacedo99/OpsFlow.git
 ```
+
+Enter the project:
+
+```bash
+cd OpsFlow
+```
+
+Install the dependencies:
+
+```bash
+npm install
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+Open the local address shown by Vite in the terminal.
+
+## Available Scripts
+
+```bash
+npm run dev
+```
+
+Starts the Vite development server with Hot Module Replacement.
+
+```bash
+npm run lint
+```
+
+Analyses the project using ESLint.
+
+```bash
+npm run build
+```
+
+Runs TypeScript validation and creates the production build.
+
+```bash
+npm run preview
+```
+
+Serves the production build locally for verification.
+
+## Data Model
+
+Supplier records currently include:
+
+```ts
+type Supplier = {
+  id: string
+  name: string
+  category: string
+  country: string
+  riskLevel: 'unassessed' | 'low' | 'medium' | 'high'
+  assessmentStatus: 'approved' | 'pending' | 'review-required'
+  complianceScore: number
+  lastAssessmentDate: string | null
+}
+```
+
+The TypeScript model prevents invalid risk levels, missing required properties and inconsistent supplier data during development.
+
+## Planned Development
+
+### Frontend
+
+- Dynamic dashboard metrics
+- Supplier search, filters and sorting
+- Supplier editing
+- Form validation and user feedback
+- Additional pages and functional navigation
+- Loading, error and empty states
+- Responsive mobile navigation
+- Accessibility improvements
+
+### Backend and Data
+
+- Node.js and Express REST API
+- PostgreSQL persistence
+- Runtime validation
+- Structured error handling
+- Database migrations
+- Health checks and application logging
+
+### Security and Workflows
+
+- Authentication
+- Role-Based Access Control
+- Supplier assessments
+- Approval workflows
+- Compliance document tracking
+- Audit logs
+
+### Engineering Quality
+
+- Automated tests with Vitest and React Testing Library
+- API and business-rule testing
+- GitHub Actions CI/CD
+- Deployment configuration
+- Production environment variables
+
+## Long-Term Vision
+
+OpsFlow is designed as a reusable operational platform that can later be adapted to different business domains, including:
+
+- Supplier risk and compliance
+- Engineering operations
+- Financial operations
+- Healthcare workflows
+- AI and document processing
+
+The underlying architecture will remain reusable while the data models, workflows and interfaces change according to each industry.
