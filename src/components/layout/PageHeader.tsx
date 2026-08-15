@@ -2,12 +2,14 @@ type PageHeaderProps = {
     eyebrow: string
     title: string
     actionLabel: string
+    onAction: () => void
 }
 
 function PageHeader({
     eyebrow,
     title,
     actionLabel,
+    onAction
 }: PageHeaderProps) {
     return (
         <header className="page-header">
@@ -16,7 +18,7 @@ function PageHeader({
                 <h1>{title}</h1>
             </div>
 
-            <button type="button" className="primary-button">
+            <button type="button" className="primary-button" onClick={onAction}>
                 {actionLabel}
             </button>
         </header>

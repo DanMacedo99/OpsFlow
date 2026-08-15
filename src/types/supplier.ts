@@ -1,4 +1,6 @@
-export type RiskLevel = 'low' | 'medium' | 'high'
+export type RiskLevel = 'unassessed' | 'low' | 'medium' | 'high'
+
+
 
 export type AssessmentStatus =
     | 'approved'
@@ -13,5 +15,11 @@ export type Supplier = {
     riskLevel: RiskLevel
     assessmentStatus: AssessmentStatus
     complianceScore: number
-    lastAssessmentDate: string
+    lastAssessmentDate: string | null
+}
+
+export type NewSupplierInput = {
+    name: string
+    category: string
+    country: string
 }

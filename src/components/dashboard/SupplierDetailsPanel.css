@@ -56,3 +56,48 @@
     font-weight: 600;
     text-transform: capitalize;
 }
+
+.supplier-details-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.supplier-details-header .delete-supplier-button {
+    color: #b42318;
+    border-color: #fda29b;
+}
+
+.delete-confirmation {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 16px;
+    margin-top: 24px;
+    background-color: #fef3f2;
+    border: 1px solid #fecdca;
+    border-radius: 8px;
+}
+
+.delete-confirmation p {
+    margin: 4px 0 0;
+    color: #667085;
+    font-size: 0.875rem;
+}
+
+.delete-confirmation-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.delete-confirmation-actions button {
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.confirm-delete-button {
+    color: #ffffff;
+    background-color: #d92d20;
+    border: 1px solid #d92d20;
+}

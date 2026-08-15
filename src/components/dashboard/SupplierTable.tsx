@@ -12,7 +12,11 @@ const dateFormatter = new Intl.DateTimeFormat('en-IE', {
     year: 'numeric',
 })
 
-function formatDate(date: string) {
+function formatDate(date: string | null) {
+    if (!date) {
+        return 'Not assessed'
+    }
+
     return dateFormatter.format(new Date(`${date}T00:00:00`))
 }
 

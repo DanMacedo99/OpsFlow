@@ -1,9 +1,11 @@
 import type { Supplier } from '../../types/supplier'
+import { useState } from 'react'
 import './SupplierDetailsPanel.css'
 
 type SupplierDetailsPanelProps = {
     supplier: Supplier
     onClose: () => void
+    onDelete: (supplierId: string) => void
 }
 
 function formatLabel(value: string) {
@@ -13,7 +15,9 @@ function formatLabel(value: string) {
 function SupplierDetailsPanel({
     supplier,
     onClose,
+    onDelete,
 }: SupplierDetailsPanelProps) {
+    const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
     return (
         <section
             className="supplier-details"
@@ -25,9 +29,19 @@ function SupplierDetailsPanel({
                     <h2 id="supplier-details-heading">{supplier.name}</h2>
                 </div>
 
-                <button type="button" onClick={onClose}>
-                    Close
-                </button>
+                <div className="supplier-details-actions">
+                    <button type="button" onClick={onClose}>
+                        Close
+                    </button>
+
+                    <button
+                        type="button"
+                        className="delete-supplier-button"
+                        onClick={() => setIsConfirmingDelete(true)}
+                    >
+                        Delete supplier
+                    </button>
+                </div>
             </header>
 
             <dl className="supplier-details-grid">
@@ -61,6 +75,31 @@ function SupplierDetailsPanel({
                     <dd>{supplier.complianceScore}%</dd>
                 </div>
             </dl>
+            {isConfirmingDelete && (
+                <div className="delete-confirmation" role="alert">
+                    <div>
+                        <strong>Delete this supplier?</strong>
+                        <p>This action removes the supplier from the current session.</p>
+                    </div>
+
+                    <div className="delete-confirmation-actions">
+                        <button
+                            type="button"
+                            onClick={() => setIsConfirmingDelete(false)}
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            type="button"
+                            className="confirm-delete-button"
+                            onClick={() => onDelete(supplier.id)}
+                        >
+                            Confirm delete
+                        </button>
+                    </div>
+                </div>
+            )}
         </section>
     )
 }

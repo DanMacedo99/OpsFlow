@@ -90,6 +90,11 @@
     background-color: #fef3f2;
 }
 
+.risk-unassessed {
+    color: #344054;
+    background-color: #f2f4f7;
+}
+
 .assessment-status {
     text-transform: capitalize;
 }

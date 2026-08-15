@@ -1,0 +1,62 @@
+.add-supplier-panel {
+    margin-bottom: 32px;
+}
+
+.add-supplier-panel-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.add-supplier-panel-header h2,
+.add-supplier-panel-header p {
+    margin: 0;
+}
+
+.add-supplier-panel-header p {
+    margin-top: 4px;
+    color: #667085;
+    font-size: 0.875rem;
+}
+
+.secondary-button {
+    padding: 8px 12px;
+    color: #344054;
+    background-color: #ffffff;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.supplier-form {
+    margin-top: 24px;
+}
+
+.supplier-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.supplier-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: #344054;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.supplier-form input {
+    padding: 10px 12px;
+    color: #101828;
+    background-color: #ffffff;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+}
+
+.supplier-form input:focus {
+    border-color: #155eef;
+    outline: 2px solid #d1e0ff;
+}
