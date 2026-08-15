@@ -2,9 +2,11 @@ import type { Supplier } from '../../types/supplier'
 import { useState } from 'react'
 import './SupplierDetailsPanel.css'
 
+
 type SupplierDetailsPanelProps = {
     supplier: Supplier
     onClose: () => void
+    onEdit: () => void
     onDelete: (supplierId: string) => void
 }
 
@@ -14,6 +16,7 @@ function formatLabel(value: string) {
 
 function SupplierDetailsPanel({
     supplier,
+    onEdit,
     onClose,
     onDelete,
 }: SupplierDetailsPanelProps) {
@@ -32,6 +35,10 @@ function SupplierDetailsPanel({
                 <div className="supplier-details-actions">
                     <button type="button" onClick={onClose}>
                         Close
+                    </button>
+
+                    <button type="button" onClick={onEdit}>
+                        Edit supplier
                     </button>
 
                     <button

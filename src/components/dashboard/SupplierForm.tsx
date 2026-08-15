@@ -1,19 +1,31 @@
 import { useState, type FormEvent } from 'react'
-import type { NewSupplierInput } from '../../types/supplier'
-import './AddSupplierForm.css'
+import type { SupplierFormData } from '../../types/supplier'
+import './SupplierForm.css'
 
-type AddSupplierFormProps = {
-    onSubmit: (supplier: NewSupplierInput) => void
+type SupplierFormProps = {
+    title: string
+    description: string
+    submitLabel: string
+    initialValues?: SupplierFormData
+    onSubmit: (supplier: SupplierFormData) => void
     onCancel: () => void
 }
 
-function AddSupplierForm({
+function SupplierForm({
+    title,
+    description,
+    submitLabel,
+    initialValues,
     onSubmit,
     onCancel,
-}: AddSupplierFormProps) {
-    const [name, setName] = useState('')
-    const [category, setCategory] = useState('')
-    const [country, setCountry] = useState('')
+}: SupplierFormProps) {
+    const [name, setName] = useState(initialValues?.name ?? '')
+    const [category, setCategory] = useState(
+        initialValues?.category ?? '',
+    )
+    const [country, setCountry] = useState(
+        initialValues?.country ?? '',
+    )
 
     function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault()
@@ -28,12 +40,12 @@ function AddSupplierForm({
     return (
         <section
             className="content-panel add-supplier-panel"
-            aria-labelledby="add-supplier-heading"
+            aria-labelledby="supplier-form-heading"
         >
             <div className="add-supplier-panel-header">
                 <div>
-                    <h2 id="add-supplier-heading">Add supplier</h2>
-                    <p>Enter the supplier information to create a new record.</p>
+                    <h2 id="supplier-form-heading">{title}</h2>
+                    <p>{description}</p>
                 </div>
 
                 <button
@@ -79,11 +91,11 @@ function AddSupplierForm({
                 </div>
 
                 <button type="submit" className="primary-button">
-                    Save supplier
+                    {submitLabel}
                 </button>
             </form>
         </section>
     )
 }
 
-export default AddSupplierForm
+export default SupplierForm

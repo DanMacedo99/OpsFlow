@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import type { Supplier } from '../types/supplier'
 import { mockSuppliers } from '../data/suppliers'
-import type { NewSupplierInput } from '../types/supplier'
 import MetricCard from '../components/dashboard/MetricCard'
 import PageHeader from '../components/layout/PageHeader'
 import SupplierDetailsPanel from '../components/dashboard/SupplierDetailsPanel'
 import SupplierTable from '../components/dashboard/SupplierTable'
-import AddSupplierForm from '../components/dashboard/AddSupplierForm'
+import SupplierForm from '../components/dashboard/SupplierForm'
+import type { SupplierFormData } from '../types/supplier'
 import './DashboardPage.css'
 import SupplierFilters, {
     type SupplierRiskFilter,
@@ -34,6 +34,7 @@ function DashboardPage() {
     const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false)
     const [suppliers, setSuppliers] = useState<Supplier[]>(mockSuppliers)
     const [searchTerm, setSearchTerm] = useState('')
+    const [supplierBeingEdited, setSupplierBeingEdited] = useState<Supplier | null>(null)
     const [riskFilter, setRiskFilter] =
         useState<SupplierRiskFilter>('all')
 
@@ -104,6 +105,28 @@ function DashboardPage() {
         return matchesSearch && matchesRisk
     })
 
+    function handleUpdateSupplier(input: SupplierFormData) {
+        if (!supplierBeingEdited) {
+            return
+        }
+
+        const updatedSupplier: Supplier = {
+            ...supplierBeingEdited,
+            ...input,
+        }
+
+        setSuppliers((currentSuppliers) =>
+            currentSuppliers.map((supplier) =>
+                supplier.id === updatedSupplier.id
+                    ? updatedSupplier
+                    : supplier,
+            ),
+        )
+
+        setSelectedSupplier(updatedSupplier)
+        setSupplierBeingEdited(null)
+    }
+
     function handleDeleteSupplier(supplierId: string) {
         setSuppliers((currentSuppliers) =>
             currentSuppliers.filter(
@@ -114,7 +137,7 @@ function DashboardPage() {
         setSelectedSupplier(null)
     }
 
-    function handleAddSupplier(input: NewSupplierInput) {
+    function handleAddSupplier(input: SupplierFormData) {
         const newSupplier: Supplier = {
             id: createNextSupplierId(suppliers),
             ...input,
@@ -140,14 +163,37 @@ function DashboardPage() {
                 eyebrow="Supplier Risk Management"
                 title="Dashboard"
                 actionLabel="Add supplier"
-                onAction={() => setIsAddSupplierOpen(true)}
+                onAction={() => {
+                    setSupplierBeingEdited(null)
+                    setIsAddSupplierOpen(true)
+                }}
             />
             {isAddSupplierOpen && (
-                <AddSupplierForm
+                <SupplierForm
+                    title="Add supplier"
+                    description="Enter the supplier information to create a new record."
+                    submitLabel="Save supplier"
                     onSubmit={handleAddSupplier}
                     onCancel={() => setIsAddSupplierOpen(false)}
                 />
             )}
+
+            {supplierBeingEdited && (
+                <SupplierForm
+                    key={supplierBeingEdited.id}
+                    title="Edit supplier"
+                    description="Update the supplier information."
+                    submitLabel="Save changes"
+                    initialValues={{
+                        name: supplierBeingEdited.name,
+                        category: supplierBeingEdited.category,
+                        country: supplierBeingEdited.country,
+                    }}
+                    onSubmit={handleUpdateSupplier}
+                    onCancel={() => setSupplierBeingEdited(null)}
+                />
+            )}
+
 
             <section aria-labelledby="overview-heading">
                 <h2 id="overview-heading">Risk overview</h2>
@@ -181,8 +227,16 @@ function DashboardPage() {
 
                 {selectedSupplier && (
                     <SupplierDetailsPanel
+                        key={selectedSupplier.id}
                         supplier={selectedSupplier}
-                        onClose={() => setSelectedSupplier(null)}
+                        onClose={() => {
+                            setSelectedSupplier(null)
+                            setSupplierBeingEdited(null)
+                        }}
+                        onEdit={() => {
+                            setIsAddSupplierOpen(false)
+                            setSupplierBeingEdited(selectedSupplier)
+                        }}
                         onDelete={handleDeleteSupplier}
                     />
                 )}

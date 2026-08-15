@@ -18,7 +18,7 @@ export type Supplier = {
     lastAssessmentDate: string | null
 }
 
-export type NewSupplierInput = {
+export type SupplierFormData = {
     name: string
     category: string
     country: string
