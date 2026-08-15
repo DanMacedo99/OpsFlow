@@ -25,6 +25,16 @@ function formatLabel(value: string) {
 }
 
 function SupplierTable({ suppliers, onSelectSupplier }: SupplierTableProps) {
+
+    if (suppliers.length === 0) {
+        return (
+            <div className="supplier-empty-state">
+                <h3>No suppliers found</h3>
+                <p>Try changing the search term or risk filter.</p>
+            </div>
+        )
+    }
+
     return (
         <div className="supplier-table-container">
             <table

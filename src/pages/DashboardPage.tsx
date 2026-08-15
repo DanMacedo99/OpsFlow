@@ -1,13 +1,16 @@
-import MetricCard from '../components/dashboard/MetricCard'
-import PageHeader from '../components/layout/PageHeader'
-import './DashboardPage.css'
 import { useState } from 'react'
-import SupplierDetailsPanel from '../components/dashboard/SupplierDetailsPanel'
 import type { Supplier } from '../types/supplier'
 import { mockSuppliers } from '../data/suppliers'
+import type { NewSupplierInput } from '../types/supplier'
+import MetricCard from '../components/dashboard/MetricCard'
+import PageHeader from '../components/layout/PageHeader'
+import SupplierDetailsPanel from '../components/dashboard/SupplierDetailsPanel'
 import SupplierTable from '../components/dashboard/SupplierTable'
 import AddSupplierForm from '../components/dashboard/AddSupplierForm'
-import type { NewSupplierInput } from '../types/supplier'
+import './DashboardPage.css'
+import SupplierFilters, {
+    type SupplierRiskFilter,
+} from '../components/dashboard/SupplierFilters'
 
 
 function createNextSupplierId(suppliers: Supplier[]) {
@@ -30,6 +33,9 @@ function DashboardPage() {
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null)
     const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false)
     const [suppliers, setSuppliers] = useState<Supplier[]>(mockSuppliers)
+    const [searchTerm, setSearchTerm] = useState('')
+    const [riskFilter, setRiskFilter] =
+        useState<SupplierRiskFilter>('all')
 
     const highRiskSuppliers = suppliers.filter(
         (supplier) => supplier.riskLevel === 'high',
@@ -76,6 +82,27 @@ function DashboardPage() {
             description: 'Across assessed suppliers',
         },
     ]
+
+    const normalizedSearch = searchTerm.trim().toLowerCase()
+
+    const filteredSuppliers = suppliers.filter((supplier) => {
+        const searchableValues = [
+            supplier.id,
+            supplier.name,
+            supplier.category,
+            supplier.country,
+        ]
+
+        const matchesSearch = searchableValues.some((value) =>
+            value.toLowerCase().includes(normalizedSearch),
+        )
+
+        const matchesRisk =
+            riskFilter === 'all' ||
+            supplier.riskLevel === riskFilter
+
+        return matchesSearch && matchesRisk
+    })
 
     function handleDeleteSupplier(supplierId: string) {
         setSuppliers((currentSuppliers) =>
@@ -136,8 +163,19 @@ function DashboardPage() {
                     ))}
                 </div>
 
+                <SupplierFilters
+                    searchTerm={searchTerm}
+                    riskFilter={riskFilter}
+                    onSearchChange={setSearchTerm}
+                    onRiskFilterChange={setRiskFilter}
+                    onClear={() => {
+                        setSearchTerm('')
+                        setRiskFilter('all')
+                    }}
+                />
+
                 <SupplierTable
-                    suppliers={suppliers}
+                    suppliers={filteredSuppliers}
                     onSelectSupplier={(supplier) => setSelectedSupplier(supplier)}
                 />
 

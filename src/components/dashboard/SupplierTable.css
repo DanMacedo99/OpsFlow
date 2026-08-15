@@ -98,3 +98,21 @@
 .assessment-status {
     text-transform: capitalize;
 }
+
+.supplier-empty-state {
+    padding: 40px 24px;
+    text-align: center;
+    background-color: #ffffff;
+    border: 1px solid #eaecf0;
+    border-radius: 12px;
+}
+
+.supplier-empty-state h3,
+.supplier-empty-state p {
+    margin: 0;
+}
+
+.supplier-empty-state p {
+    margin-top: 6px;
+    color: #667085;
+}
