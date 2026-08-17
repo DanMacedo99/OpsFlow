@@ -1,10 +1,16 @@
 import type { Supplier } from '../../types/supplier'
-import { useState } from 'react'
+import {
+    useEffect,
+    useRef,
+    useState,
+    type Ref,
+} from 'react'
 import './SupplierDetailsPanel.css'
 
 
 type SupplierDetailsPanelProps = {
     supplier: Supplier
+    editButtonRef?: Ref<HTMLButtonElement>
     onClose: () => void
     onEdit: () => void
     onDelete: (supplierId: string) => void
@@ -16,14 +22,27 @@ function formatLabel(value: string) {
 
 function SupplierDetailsPanel({
     supplier,
+    editButtonRef,
     onEdit,
     onClose,
     onDelete,
 }: SupplierDetailsPanelProps) {
     const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
+    const deleteButtonRef = useRef<HTMLButtonElement>(null)
+
+    const cancelDeleteButtonRef =
+        useRef<HTMLButtonElement>(null)
+
+    useEffect(() => {
+        if (isConfirmingDelete) {
+            cancelDeleteButtonRef.current?.focus()
+        }
+    }, [isConfirmingDelete])
+
     return (
         <section
-            className="supplier-details"
+            id="supplier-details-panel"
+            className="content-panel supplier-details"
             aria-labelledby="supplier-details-heading"
         >
             <header className="supplier-details-header">
@@ -37,13 +56,17 @@ function SupplierDetailsPanel({
                         Close
                     </button>
 
-                    <button type="button" onClick={onEdit}>
+                    <button
+                        ref={editButtonRef}
+                        type="button"
+                        onClick={onEdit}
+                    >
                         Edit supplier
                     </button>
 
                     <button
+                        ref={deleteButtonRef}
                         type="button"
-                        className="delete-supplier-button"
                         onClick={() => setIsConfirmingDelete(true)}
                     >
                         Delete supplier
@@ -83,26 +106,35 @@ function SupplierDetailsPanel({
                 </div>
             </dl>
             {isConfirmingDelete && (
-                <div className="delete-confirmation" role="alert">
-                    <div>
-                        <strong>Delete this supplier?</strong>
-                        <p>This action removes the supplier from the current session.</p>
-                    </div>
+                <div
+                    className="delete-confirmation"
+                    role="group"
+                    aria-labelledby="delete-confirmation-message"
+                >
+                    <p id="delete-confirmation-message">
+                        Are you sure you want to delete {supplier.name}?
+                    </p>
 
                     <div className="delete-confirmation-actions">
                         <button
+                            ref={cancelDeleteButtonRef}
                             type="button"
-                            onClick={() => setIsConfirmingDelete(false)}
+                            onClick={() => {
+                                setIsConfirmingDelete(false)
+
+                                window.requestAnimationFrame(() => {
+                                    deleteButtonRef.current?.focus()
+                                })
+                            }}
                         >
                             Cancel
                         </button>
 
                         <button
                             type="button"
-                            className="confirm-delete-button"
                             onClick={() => onDelete(supplier.id)}
                         >
-                            Confirm delete
+                            Confirm deletion
                         </button>
                     </div>
                 </div>

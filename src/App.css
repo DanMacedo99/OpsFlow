@@ -139,3 +139,27 @@
     padding: 16px;
   }
 }
+
+.skip-link {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1000;
+  padding: 10px 14px;
+  color: #ffffff;
+  background-color: #155eef;
+  border-radius: 8px;
+  transform: translateY(-200%);
+  transition: transform 150ms ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.main-content:focus-visible {
+  outline: 2px solid #155eef;
+  outline-offset: -2px;
+}

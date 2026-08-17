@@ -8,6 +8,7 @@ import './SupplierTable.css'
 
 type SupplierTableProps = {
     suppliers: Supplier[]
+    selectedSupplierId?: string
     sortKey: SupplierSortKey
     sortDirection: SortDirection
     onSelectSupplier: (supplier: Supplier) => void
@@ -34,6 +35,7 @@ function formatLabel(value: string) {
 
 function SupplierTable({
     suppliers,
+    selectedSupplierId,
     sortKey,
     sortDirection,
     onSelectSupplier,
@@ -158,6 +160,12 @@ function SupplierTable({
                                             <button
                                                 type="button"
                                                 className="supplier-button"
+                                                aria-expanded={selectedSupplierId === supplier.id}
+                                                aria-controls={
+                                                    selectedSupplierId === supplier.id
+                                                        ? 'supplier-details-panel'
+                                                        : undefined
+                                                }
                                                 onClick={() => onSelectSupplier(supplier)}
                                             >
                                                 {supplier.name}

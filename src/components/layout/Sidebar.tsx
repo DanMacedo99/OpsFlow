@@ -14,7 +14,7 @@ function Sidebar() {
                 <span>Supplier Risk</span>
             </div>
 
-            <nav aria-label="Main navigation">
+            <nav aria-label="Primary navigation">
                 <ul>
                     {navigationItems.map((item) => (
                         <li key={item}>

@@ -1,4 +1,9 @@
-import { useState, type FormEvent } from 'react'
+import {
+    useEffect,
+    useRef,
+    useState,
+    type FormEvent,
+} from 'react'
 import type { SupplierFormData } from '../../types/supplier'
 import './SupplierForm.css'
 
@@ -26,6 +31,11 @@ function SupplierForm({
     const [country, setCountry] = useState(
         initialValues?.country ?? '',
     )
+    const nameInputRef = useRef<HTMLInputElement>(null)
+
+    useEffect(() => {
+        nameInputRef.current?.focus()
+    }, [])
 
     function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault()
@@ -62,6 +72,7 @@ function SupplierForm({
                     <label>
                         Supplier name
                         <input
+                            ref={nameInputRef}
                             type="text"
                             value={name}
                             onChange={(event) => setName(event.target.value)}

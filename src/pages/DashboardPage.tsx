@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { mockSuppliers } from '../data/suppliers'
 import MetricCard from '../components/dashboard/MetricCard'
 import PageHeader from '../components/layout/PageHeader'
@@ -88,9 +88,12 @@ function DashboardPage() {
         useState<SupplierSortKey>('name')
     const [sortDirection, setSortDirection] =
         useState<SortDirection>('asc')
-
     const [feedback, setFeedback] =
         useState<FeedbackState | null>(null)
+    const addSupplierButtonRef =
+        useRef<HTMLButtonElement>(null)
+    const editSupplierButtonRef =
+        useRef<HTMLButtonElement>(null)
 
     useEffect(() => {
         if (!feedback) {
@@ -257,6 +260,10 @@ function DashboardPage() {
             variant: 'success',
             message: `${updatedSupplier.name} was updated successfully.`,
         })
+
+        window.requestAnimationFrame(() => {
+            editSupplierButtonRef.current?.focus()
+        })
     }
 
     function handleDeleteSupplier(supplierId: string) {
@@ -280,6 +287,9 @@ function DashboardPage() {
                 : 'Supplier was deleted successfully.',
         })
 
+        window.requestAnimationFrame(() => {
+            addSupplierButtonRef.current?.focus()
+        })
     }
 
     function handleAddSupplier(input: SupplierFormData) {
@@ -304,6 +314,10 @@ function DashboardPage() {
             variant: 'success',
             message: `${newSupplier.name} was added successfully.`,
         })
+
+        window.requestAnimationFrame(() => {
+            addSupplierButtonRef.current?.focus()
+        })
     }
 
 
@@ -313,6 +327,7 @@ function DashboardPage() {
                 eyebrow="Supplier Risk Management"
                 title="Dashboard"
                 actionLabel="Add supplier"
+                actionButtonRef={addSupplierButtonRef}
                 onAction={() => {
                     setSupplierBeingEdited(null)
                     setIsAddSupplierOpen(true)
@@ -332,7 +347,13 @@ function DashboardPage() {
                     description="Enter the supplier information to create a new record."
                     submitLabel="Save supplier"
                     onSubmit={handleAddSupplier}
-                    onCancel={() => setIsAddSupplierOpen(false)}
+                    onCancel={() => {
+                        setIsAddSupplierOpen(false)
+
+                        window.requestAnimationFrame(() => {
+                            addSupplierButtonRef.current?.focus()
+                        })
+                    }}
                 />
             )}
 
@@ -348,7 +369,13 @@ function DashboardPage() {
                         country: supplierBeingEdited.country,
                     }}
                     onSubmit={handleUpdateSupplier}
-                    onCancel={() => setSupplierBeingEdited(null)}
+                    onCancel={() => {
+                        setSupplierBeingEdited(null)
+
+                        window.requestAnimationFrame(() => {
+                            editSupplierButtonRef.current?.focus()
+                        })
+                    }}
                 />
             )}
 
@@ -380,6 +407,7 @@ function DashboardPage() {
 
                 <SupplierTable
                     suppliers={sortedSuppliers}
+                    selectedSupplierId={selectedSupplier?.id}
                     sortKey={sortKey}
                     sortDirection={sortDirection}
                     onSort={handleSort}
@@ -390,6 +418,7 @@ function DashboardPage() {
                     <SupplierDetailsPanel
                         key={selectedSupplier.id}
                         supplier={selectedSupplier}
+                        editButtonRef={editSupplierButtonRef}
                         onClose={() => {
                             setSelectedSupplier(null)
                             setSupplierBeingEdited(null)
