@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { mockSuppliers } from '../data/suppliers'
 import MetricCard from '../components/dashboard/MetricCard'
 import PageHeader from '../components/layout/PageHeader'
@@ -16,12 +16,20 @@ import type {
     SupplierFormData,
     SupplierSortKey,
 } from '../types/supplier'
+import FeedbackBanner, {
+    type FeedbackVariant,
+} from '../components/common/FeedbackBanner'
 
 const riskOrder: Record<RiskLevel, number> = {
     unassessed: 0,
     low: 1,
     medium: 2,
     high: 3,
+}
+
+type FeedbackState = {
+    message: string
+    variant: FeedbackVariant
 }
 
 function compareSuppliers(
@@ -78,9 +86,23 @@ function DashboardPage() {
         useState<SupplierRiskFilter>('all')
     const [sortKey, setSortKey] =
         useState<SupplierSortKey>('name')
-
     const [sortDirection, setSortDirection] =
         useState<SortDirection>('asc')
+
+    const [feedback, setFeedback] =
+        useState<FeedbackState | null>(null)
+
+    useEffect(() => {
+        if (!feedback) {
+            return
+        }
+
+        const timeoutId = window.setTimeout(() => {
+            setFeedback(null)
+        }, 4000)
+
+        return () => window.clearTimeout(timeoutId)
+    }, [feedback])
 
     const highRiskSuppliers = suppliers.filter(
         (supplier) => supplier.riskLevel === 'high',
@@ -231,9 +253,17 @@ function DashboardPage() {
 
         setSelectedSupplier(updatedSupplier)
         setSupplierBeingEdited(null)
+        setFeedback({
+            variant: 'success',
+            message: `${updatedSupplier.name} was updated successfully.`,
+        })
     }
 
     function handleDeleteSupplier(supplierId: string) {
+        const supplierToDelete = suppliers.find(
+            (supplier) => supplier.id === supplierId,
+        )
+
         setSuppliers((currentSuppliers) =>
             currentSuppliers.filter(
                 (supplier) => supplier.id !== supplierId,
@@ -241,6 +271,15 @@ function DashboardPage() {
         )
 
         setSelectedSupplier(null)
+        setSupplierBeingEdited(null)
+
+        setFeedback({
+            variant: 'success',
+            message: supplierToDelete
+                ? `${supplierToDelete.name} was deleted successfully.`
+                : 'Supplier was deleted successfully.',
+        })
+
     }
 
     function handleAddSupplier(input: SupplierFormData) {
@@ -260,6 +299,11 @@ function DashboardPage() {
 
         setSelectedSupplier(newSupplier)
         setIsAddSupplierOpen(false)
+
+        setFeedback({
+            variant: 'success',
+            message: `${newSupplier.name} was added successfully.`,
+        })
     }
 
 
@@ -274,6 +318,14 @@ function DashboardPage() {
                     setIsAddSupplierOpen(true)
                 }}
             />
+
+            {feedback && (
+                <FeedbackBanner
+                    message={feedback.message}
+                    variant={feedback.variant}
+                    onDismiss={() => setFeedback(null)}
+                />
+            )}
             {isAddSupplierOpen && (
                 <SupplierForm
                     title="Add supplier"

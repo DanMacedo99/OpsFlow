@@ -1,7 +1,5 @@
 export type RiskLevel = 'unassessed' | 'low' | 'medium' | 'high'
 
-
-
 export type AssessmentStatus =
     | 'approved'
     | 'pending'
