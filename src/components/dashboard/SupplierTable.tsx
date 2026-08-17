@@ -1,9 +1,17 @@
-import type { Supplier } from '../../types/supplier'
+
+import type {
+    SortDirection,
+    Supplier,
+    SupplierSortKey,
+} from '../../types/supplier'
 import './SupplierTable.css'
 
 type SupplierTableProps = {
     suppliers: Supplier[]
+    sortKey: SupplierSortKey
+    sortDirection: SortDirection
     onSelectSupplier: (supplier: Supplier) => void
+    onSort: (sortKey: SupplierSortKey) => void
 }
 
 const dateFormatter = new Intl.DateTimeFormat('en-IE', {
@@ -24,7 +32,13 @@ function formatLabel(value: string) {
     return value.replaceAll('-', ' ')
 }
 
-function SupplierTable({ suppliers, onSelectSupplier }: SupplierTableProps) {
+function SupplierTable({
+    suppliers,
+    sortKey,
+    sortDirection,
+    onSelectSupplier,
+    onSort,
+}: SupplierTableProps) {
 
     if (suppliers.length === 0) {
         return (
@@ -35,6 +49,24 @@ function SupplierTable({ suppliers, onSelectSupplier }: SupplierTableProps) {
         )
     }
 
+    function getAriaSort(column: SupplierSortKey) {
+        if (sortKey !== column) {
+            return 'none'
+        }
+
+        return sortDirection === 'asc'
+            ? 'ascending'
+            : 'descending'
+    }
+
+    function getSortIndicator(column: SupplierSortKey) {
+        if (sortKey !== column) {
+            return null
+        }
+
+        return sortDirection === 'asc' ? '↑' : '↓'
+    }
+
     return (
         <div className="supplier-table-container">
             <table
@@ -43,13 +75,63 @@ function SupplierTable({ suppliers, onSelectSupplier }: SupplierTableProps) {
             >
                 <thead>
                     <tr>
-                        <th scope="col">Supplier</th>
+                        <th scope="col" aria-sort={getAriaSort('name')}>
+                            <button
+                                type="button"
+                                className="table-sort-button"
+                                onClick={() => onSort('name')}
+                            >
+                                Supplier
+                                <span className="sort-indicator" aria-hidden="true">
+                                    {getSortIndicator('name')}
+                                </span>
+                            </button>
+                        </th>
                         <th scope="col">Category</th>
                         <th scope="col">Country</th>
-                        <th scope="col">Risk</th>
+                        <th scope="col" aria-sort={getAriaSort('riskLevel')}>
+                            <button
+                                type="button"
+                                className="table-sort-button"
+                                onClick={() => onSort('riskLevel')}
+                            >
+                                Risk
+                                <span className="sort-indicator" aria-hidden="true">
+                                    {getSortIndicator('riskLevel')}
+                                </span>
+                            </button>
+                        </th>
                         <th scope="col">Assessment</th>
-                        <th scope="col">Compliance</th>
-                        <th scope="col">Last assessment</th>
+                        <th
+                            scope="col"
+                            aria-sort={getAriaSort('complianceScore')}
+                        >
+                            <button
+                                type="button"
+                                className="table-sort-button"
+                                onClick={() => onSort('complianceScore')}
+                            >
+                                Compliance
+                                <span className="sort-indicator" aria-hidden="true">
+                                    {getSortIndicator('complianceScore')}
+                                </span>
+                            </button>
+                        </th>
+                        <th
+                            scope="col"
+                            aria-sort={getAriaSort('lastAssessmentDate')}
+                        >
+                            <button
+                                type="button"
+                                className="table-sort-button"
+                                onClick={() => onSort('lastAssessmentDate')}
+                            >
+                                Last assessment
+                                <span className="sort-indicator" aria-hidden="true">
+                                    {getSortIndicator('lastAssessmentDate')}
+                                </span>
+                            </button>
+                        </th>
                     </tr>
                 </thead>
 

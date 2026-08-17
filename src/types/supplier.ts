@@ -23,3 +23,11 @@ export type SupplierFormData = {
     category: string
     country: string
 }
+
+export type SupplierSortKey =
+    | 'name'
+    | 'riskLevel'
+    | 'complianceScore'
+    | 'lastAssessmentDate'
+
+export type SortDirection = 'asc' | 'desc'

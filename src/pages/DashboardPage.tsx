@@ -1,17 +1,56 @@
 import { useState } from 'react'
-import type { Supplier } from '../types/supplier'
 import { mockSuppliers } from '../data/suppliers'
 import MetricCard from '../components/dashboard/MetricCard'
 import PageHeader from '../components/layout/PageHeader'
 import SupplierDetailsPanel from '../components/dashboard/SupplierDetailsPanel'
 import SupplierTable from '../components/dashboard/SupplierTable'
 import SupplierForm from '../components/dashboard/SupplierForm'
-import type { SupplierFormData } from '../types/supplier'
 import './DashboardPage.css'
 import SupplierFilters, {
     type SupplierRiskFilter,
 } from '../components/dashboard/SupplierFilters'
+import type {
+    RiskLevel,
+    SortDirection,
+    Supplier,
+    SupplierFormData,
+    SupplierSortKey,
+} from '../types/supplier'
 
+const riskOrder: Record<RiskLevel, number> = {
+    unassessed: 0,
+    low: 1,
+    medium: 2,
+    high: 3,
+}
+
+function compareSuppliers(
+    firstSupplier: Supplier,
+    secondSupplier: Supplier,
+    sortKey: SupplierSortKey,
+) {
+    switch (sortKey) {
+        case 'name':
+            return firstSupplier.name.localeCompare(secondSupplier.name)
+
+        case 'riskLevel':
+            return (
+                riskOrder[firstSupplier.riskLevel] -
+                riskOrder[secondSupplier.riskLevel]
+            )
+
+        case 'complianceScore':
+            return (
+                firstSupplier.complianceScore -
+                secondSupplier.complianceScore
+            )
+
+        case 'lastAssessmentDate':
+            return (firstSupplier.lastAssessmentDate ?? '').localeCompare(
+                secondSupplier.lastAssessmentDate ?? '',
+            )
+    }
+}
 
 function createNextSupplierId(suppliers: Supplier[]) {
     const highestId = suppliers.reduce((highest, supplier) => {
@@ -37,6 +76,11 @@ function DashboardPage() {
     const [supplierBeingEdited, setSupplierBeingEdited] = useState<Supplier | null>(null)
     const [riskFilter, setRiskFilter] =
         useState<SupplierRiskFilter>('all')
+    const [sortKey, setSortKey] =
+        useState<SupplierSortKey>('name')
+
+    const [sortDirection, setSortDirection] =
+        useState<SortDirection>('asc')
 
     const highRiskSuppliers = suppliers.filter(
         (supplier) => supplier.riskLevel === 'high',
@@ -104,6 +148,68 @@ function DashboardPage() {
 
         return matchesSearch && matchesRisk
     })
+
+    const sortedSuppliers = [...filteredSuppliers].sort(
+        (firstSupplier, secondSupplier) => {
+            if (sortKey === 'riskLevel') {
+                const firstIsUnassessed =
+                    firstSupplier.riskLevel === 'unassessed'
+
+                const secondIsUnassessed =
+                    secondSupplier.riskLevel === 'unassessed'
+
+                if (firstIsUnassessed && !secondIsUnassessed) {
+                    return 1
+                }
+
+                if (!firstIsUnassessed && secondIsUnassessed) {
+                    return -1
+                }
+            }
+
+            if (sortKey === 'lastAssessmentDate') {
+                const firstHasNoDate =
+                    firstSupplier.lastAssessmentDate === null
+
+                const secondHasNoDate =
+                    secondSupplier.lastAssessmentDate === null
+
+                if (firstHasNoDate && !secondHasNoDate) {
+                    return 1
+                }
+
+                if (!firstHasNoDate && secondHasNoDate) {
+                    return -1
+                }
+            }
+
+            const comparison = compareSuppliers(
+                firstSupplier,
+                secondSupplier,
+                sortKey,
+            )
+
+            return sortDirection === 'asc'
+                ? comparison
+                : -comparison
+        },
+    )
+
+    function handleSort(selectedSortKey: SupplierSortKey) {
+        if (selectedSortKey === sortKey) {
+            setSortDirection((currentDirection) =>
+                currentDirection === 'asc' ? 'desc' : 'asc',
+            )
+
+            return
+        }
+
+        setSortKey(selectedSortKey)
+
+        setSortDirection(
+            selectedSortKey === 'name' ? 'asc' : 'desc',
+        )
+    }
 
     function handleUpdateSupplier(input: SupplierFormData) {
         if (!supplierBeingEdited) {
@@ -221,7 +327,10 @@ function DashboardPage() {
                 />
 
                 <SupplierTable
-                    suppliers={filteredSuppliers}
+                    suppliers={sortedSuppliers}
+                    sortKey={sortKey}
+                    sortDirection={sortDirection}
+                    onSort={handleSort}
                     onSelectSupplier={(supplier) => setSelectedSupplier(supplier)}
                 />
 

@@ -116,3 +116,31 @@
     margin-top: 6px;
     color: #667085;
 }
+
+.table-sort-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    font-weight: inherit;
+    background: none;
+    border: 0;
+    cursor: pointer;
+}
+
+.table-sort-button:hover {
+    color: #155eef;
+}
+
+.table-sort-button:focus-visible {
+    outline: 2px solid #155eef;
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
+.sort-indicator {
+    min-width: 10px;
+    color: #155eef;
+}
