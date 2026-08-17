@@ -1,14 +1,12 @@
 import { useEffect, useState, useRef } from 'react'
-import { mockSuppliers } from '../data/suppliers'
+import { createSupplier, deleteSupplier, getSuppliers, updateSupplier } from '../services/supplierService'
 import MetricCard from '../components/dashboard/MetricCard'
 import PageHeader from '../components/layout/PageHeader'
 import SupplierDetailsPanel from '../components/dashboard/SupplierDetailsPanel'
 import SupplierTable from '../components/dashboard/SupplierTable'
 import SupplierForm from '../components/dashboard/SupplierForm'
-import './DashboardPage.css'
-import SupplierFilters, {
-    type SupplierRiskFilter,
-} from '../components/dashboard/SupplierFilters'
+import FeedbackBanner, { type FeedbackVariant, } from '../components/common/FeedbackBanner'
+import SupplierFilters, { type SupplierRiskFilter, } from '../components/dashboard/SupplierFilters'
 import type {
     RiskLevel,
     SortDirection,
@@ -16,9 +14,7 @@ import type {
     SupplierFormData,
     SupplierSortKey,
 } from '../types/supplier'
-import FeedbackBanner, {
-    type FeedbackVariant,
-} from '../components/common/FeedbackBanner'
+import './DashboardPage.css'
 
 const riskOrder: Record<RiskLevel, number> = {
     unassessed: 0,
@@ -60,40 +56,56 @@ function compareSuppliers(
     }
 }
 
-function createNextSupplierId(suppliers: Supplier[]) {
-    const highestId = suppliers.reduce((highest, supplier) => {
-        const numericId = Number(supplier.id.replace('SUP-', ''))
-
-        if (Number.isNaN(numericId)) {
-            return highest
-        }
-
-        return Math.max(highest, numericId)
-    }, 0)
-
-    return `SUP-${String(highestId + 1).padStart(3, '0')}`
-}
-
 
 
 function DashboardPage() {
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null)
     const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false)
-    const [suppliers, setSuppliers] = useState<Supplier[]>(mockSuppliers)
+    const [suppliers, setSuppliers] = useState<Supplier[]>([])
+    const [isLoadingSuppliers, setIsLoadingSuppliers] = useState(true)
+    const [supplierLoadError, setSupplierLoadError] = useState<string | null>(null)
+    const [reloadKey, setReloadKey] = useState(0)
     const [searchTerm, setSearchTerm] = useState('')
     const [supplierBeingEdited, setSupplierBeingEdited] = useState<Supplier | null>(null)
-    const [riskFilter, setRiskFilter] =
-        useState<SupplierRiskFilter>('all')
-    const [sortKey, setSortKey] =
-        useState<SupplierSortKey>('name')
-    const [sortDirection, setSortDirection] =
-        useState<SortDirection>('asc')
-    const [feedback, setFeedback] =
-        useState<FeedbackState | null>(null)
-    const addSupplierButtonRef =
-        useRef<HTMLButtonElement>(null)
-    const editSupplierButtonRef =
-        useRef<HTMLButtonElement>(null)
+    const [riskFilter, setRiskFilter] = useState<SupplierRiskFilter>('all')
+    const [sortKey, setSortKey] = useState<SupplierSortKey>('name')
+    const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
+    const [feedback, setFeedback] = useState<FeedbackState | null>(null)
+    const addSupplierButtonRef = useRef<HTMLButtonElement>(null)
+    const editSupplierButtonRef = useRef<HTMLButtonElement>(null)
+
+    useEffect(() => {
+        let isActive = true
+
+        async function loadSuppliers() {
+            setIsLoadingSuppliers(true)
+            setSupplierLoadError(null)
+
+            try {
+                const loadedSuppliers = await getSuppliers()
+
+                if (isActive) {
+                    setSuppliers(loadedSuppliers)
+                }
+            } catch {
+                if (isActive) {
+                    setSupplierLoadError(
+                        'We could not load the suppliers. Please try again.',
+                    )
+                }
+            } finally {
+                if (isActive) {
+                    setIsLoadingSuppliers(false)
+                }
+            }
+        }
+
+        void loadSuppliers()
+
+        return () => {
+            isActive = false
+        }
+    }, [reloadKey])
 
     useEffect(() => {
         if (!feedback) {
@@ -236,88 +248,113 @@ function DashboardPage() {
         )
     }
 
-    function handleUpdateSupplier(input: SupplierFormData) {
+    async function handleUpdateSupplier(
+        input: SupplierFormData,
+    ) {
         if (!supplierBeingEdited) {
             return
         }
 
-        const updatedSupplier: Supplier = {
-            ...supplierBeingEdited,
-            ...input,
+        try {
+            const updatedSupplier = await updateSupplier(
+                supplierBeingEdited.id,
+                input,
+            )
+
+            setSuppliers((currentSuppliers) =>
+                currentSuppliers.map((supplier) =>
+                    supplier.id === updatedSupplier.id
+                        ? updatedSupplier
+                        : supplier,
+                ),
+            )
+
+            setSelectedSupplier(updatedSupplier)
+            setSupplierBeingEdited(null)
+
+            setFeedback({
+                variant: 'success',
+                message: `${updatedSupplier.name} was updated successfully.`,
+            })
+
+            window.requestAnimationFrame(() => {
+                editSupplierButtonRef.current?.focus()
+            })
+        } catch {
+            setFeedback({
+                variant: 'error',
+                message:
+                    'We could not update the supplier. Please try again.',
+            })
         }
-
-        setSuppliers((currentSuppliers) =>
-            currentSuppliers.map((supplier) =>
-                supplier.id === updatedSupplier.id
-                    ? updatedSupplier
-                    : supplier,
-            ),
-        )
-
-        setSelectedSupplier(updatedSupplier)
-        setSupplierBeingEdited(null)
-        setFeedback({
-            variant: 'success',
-            message: `${updatedSupplier.name} was updated successfully.`,
-        })
-
-        window.requestAnimationFrame(() => {
-            editSupplierButtonRef.current?.focus()
-        })
     }
 
-    function handleDeleteSupplier(supplierId: string) {
+    async function handleDeleteSupplier(
+        supplierId: string,
+    ) {
         const supplierToDelete = suppliers.find(
             (supplier) => supplier.id === supplierId,
         )
 
-        setSuppliers((currentSuppliers) =>
-            currentSuppliers.filter(
-                (supplier) => supplier.id !== supplierId,
-            ),
-        )
+        try {
+            await deleteSupplier(supplierId)
 
-        setSelectedSupplier(null)
-        setSupplierBeingEdited(null)
+            setSuppliers((currentSuppliers) =>
+                currentSuppliers.filter(
+                    (supplier) => supplier.id !== supplierId,
+                ),
+            )
 
-        setFeedback({
-            variant: 'success',
-            message: supplierToDelete
-                ? `${supplierToDelete.name} was deleted successfully.`
-                : 'Supplier was deleted successfully.',
-        })
+            setSelectedSupplier(null)
+            setSupplierBeingEdited(null)
 
-        window.requestAnimationFrame(() => {
-            addSupplierButtonRef.current?.focus()
-        })
+            setFeedback({
+                variant: 'success',
+                message: supplierToDelete
+                    ? `${supplierToDelete.name} was deleted successfully.`
+                    : 'Supplier was deleted successfully.',
+            })
+
+            window.requestAnimationFrame(() => {
+                addSupplierButtonRef.current?.focus()
+            })
+        } catch {
+            setFeedback({
+                variant: 'error',
+                message:
+                    'We could not delete the supplier. Please try again.',
+            })
+        }
     }
 
-    function handleAddSupplier(input: SupplierFormData) {
-        const newSupplier: Supplier = {
-            id: createNextSupplierId(suppliers),
-            ...input,
-            riskLevel: 'unassessed',
-            assessmentStatus: 'pending',
-            complianceScore: 0,
-            lastAssessmentDate: null,
+    async function handleAddSupplier(
+        input: SupplierFormData,
+    ) {
+        try {
+            const newSupplier = await createSupplier(input)
+
+            setSuppliers((currentSuppliers) => [
+                newSupplier,
+                ...currentSuppliers,
+            ])
+
+            setSelectedSupplier(newSupplier)
+            setIsAddSupplierOpen(false)
+
+            setFeedback({
+                variant: 'success',
+                message: `${newSupplier.name} was added successfully.`,
+            })
+
+            window.requestAnimationFrame(() => {
+                addSupplierButtonRef.current?.focus()
+            })
+        } catch {
+            setFeedback({
+                variant: 'error',
+                message: 'We could not add the supplier. Please try again.',
+            })
         }
-
-        setSuppliers((currentSuppliers) => [
-            newSupplier,
-            ...currentSuppliers,
-        ])
-
-        setSelectedSupplier(newSupplier)
-        setIsAddSupplierOpen(false)
-
-        setFeedback({
-            variant: 'success',
-            message: `${newSupplier.name} was added successfully.`,
-        })
-
-        window.requestAnimationFrame(() => {
-            addSupplierButtonRef.current?.focus()
-        })
     }
 
 
@@ -379,58 +416,75 @@ function DashboardPage() {
                 />
             )}
 
+            {isLoadingSuppliers ? (
+                <p role="status">Loading suppliers...</p>
+            ) : supplierLoadError ? (
+                <div role="alert">
+                    <p>{supplierLoadError}</p>
 
-            <section aria-labelledby="overview-heading">
-                <h2 id="overview-heading">Risk overview</h2>
-
-                <div className="metrics-grid">
-                    {metrics.map((metric) => (
-                        <MetricCard
-                            key={metric.label}
-                            label={metric.label}
-                            value={metric.value}
-                            description={metric.description}
-                        />
-                    ))}
+                    <button
+                        type="button"
+                        className="primary-button"
+                        onClick={() => {
+                            setReloadKey((currentKey) => currentKey + 1)
+                        }}
+                    >
+                        Try again
+                    </button>
                 </div>
+            ) : (
+                <section aria-labelledby="overview-heading">
+                    <h2 id="overview-heading">Risk overview</h2>
 
-                <SupplierFilters
-                    searchTerm={searchTerm}
-                    riskFilter={riskFilter}
-                    onSearchChange={setSearchTerm}
-                    onRiskFilterChange={setRiskFilter}
-                    onClear={() => {
-                        setSearchTerm('')
-                        setRiskFilter('all')
-                    }}
-                />
+                    <div className="metrics-grid">
+                        {metrics.map((metric) => (
+                            <MetricCard
+                                key={metric.label}
+                                label={metric.label}
+                                value={metric.value}
+                                description={metric.description}
+                            />
+                        ))}
+                    </div>
 
-                <SupplierTable
-                    suppliers={sortedSuppliers}
-                    selectedSupplierId={selectedSupplier?.id}
-                    sortKey={sortKey}
-                    sortDirection={sortDirection}
-                    onSort={handleSort}
-                    onSelectSupplier={(supplier) => setSelectedSupplier(supplier)}
-                />
-
-                {selectedSupplier && (
-                    <SupplierDetailsPanel
-                        key={selectedSupplier.id}
-                        supplier={selectedSupplier}
-                        editButtonRef={editSupplierButtonRef}
-                        onClose={() => {
-                            setSelectedSupplier(null)
-                            setSupplierBeingEdited(null)
+                    <SupplierFilters
+                        searchTerm={searchTerm}
+                        riskFilter={riskFilter}
+                        onSearchChange={setSearchTerm}
+                        onRiskFilterChange={setRiskFilter}
+                        onClear={() => {
+                            setSearchTerm('')
+                            setRiskFilter('all')
                         }}
-                        onEdit={() => {
-                            setIsAddSupplierOpen(false)
-                            setSupplierBeingEdited(selectedSupplier)
-                        }}
-                        onDelete={handleDeleteSupplier}
                     />
-                )}
-            </section>
+
+                    <SupplierTable
+                        suppliers={sortedSuppliers}
+                        selectedSupplierId={selectedSupplier?.id}
+                        sortKey={sortKey}
+                        sortDirection={sortDirection}
+                        onSort={handleSort}
+                        onSelectSupplier={(supplier) => setSelectedSupplier(supplier)}
+                    />
+
+                    {selectedSupplier && (
+                        <SupplierDetailsPanel
+                            key={selectedSupplier.id}
+                            supplier={selectedSupplier}
+                            editButtonRef={editSupplierButtonRef}
+                            onClose={() => {
+                                setSelectedSupplier(null)
+                                setSupplierBeingEdited(null)
+                            }}
+                            onEdit={() => {
+                                setIsAddSupplierOpen(false)
+                                setSupplierBeingEdited(selectedSupplier)
+                            }}
+                            onDelete={handleDeleteSupplier}
+                        />
+                    )}
+                </section>
+            )}
         </>
     )
 }
