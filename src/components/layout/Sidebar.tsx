@@ -1,9 +1,11 @@
+import { NavLink } from 'react-router-dom'
+
 const navigationItems = [
-    'Overview',
-    'Suppliers',
-    'Assessments',
-    'Documents',
-    'Audit log',
+    { label: 'Dashboard', path: '/' },
+    { label: 'Suppliers', path: '/suppliers' },
+    { label: 'Assessments', path: '/assessments' },
+    { label: 'Reports', path: '/reports' },
+    { label: 'Settings', path: '/settings' },
 ]
 
 function Sidebar() {
@@ -17,13 +19,16 @@ function Sidebar() {
             <nav aria-label="Primary navigation">
                 <ul>
                     {navigationItems.map((item) => (
-                        <li key={item}>
-                            <button
-                                type="button"
-                                className={item === 'Overview' ? 'nav-link active' : 'nav-link'}
+                        <li key={item.path}>
+                            <NavLink
+                                to={item.path}
+                                end={item.path === '/'}
+                                className={({ isActive }) =>
+                                    isActive ? 'nav-link active' : 'nav-link'
+                                }
                             >
-                                {item}
-                            </button>
+                                {item.label}
+                            </NavLink>
                         </li>
                     ))}
                 </ul>
