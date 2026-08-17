@@ -1,6 +1,6 @@
 .app-shell {
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 240px minmax(0, 1fr);
   min-height: 100vh;
 }
 
@@ -54,6 +54,7 @@
 
 .main-content {
   padding: 32px;
+  min-width: 0;
 }
 
 .page-header {
@@ -91,4 +92,50 @@
 
 .content-panel h2 {
   margin-top: 0;
+}
+
+@media (max-width: 800px) {
+  .app-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sidebar {
+    padding: 16px;
+  }
+
+  .brand {
+    padding: 0 0 16px;
+  }
+
+  .sidebar ul {
+    flex-direction: row;
+    gap: 8px;
+    padding-bottom: 4px;
+    overflow-x: auto;
+  }
+
+  .nav-link {
+    width: auto;
+    min-width: max-content;
+    white-space: nowrap;
+  }
+
+  .main-content {
+    padding: 20px 16px;
+  }
+
+  .page-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .page-header .primary-button {
+    width: 100%;
+  }
+
+  .content-panel {
+    padding: 16px;
+  }
 }

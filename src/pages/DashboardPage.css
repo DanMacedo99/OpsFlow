@@ -4,3 +4,9 @@
     gap: 16px;
     margin-top: 20px;
 }
+
+.dashboard-page,
+.content-panel {
+    min-width: 0;
+    max-width: 100%;
+}

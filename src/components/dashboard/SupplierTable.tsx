@@ -69,107 +69,122 @@ function SupplierTable({
 
     return (
         <div className="supplier-table-container">
-            <table
-                className="supplier-table"
-                aria-label="Supplier risk and compliance overview"
+            <p
+                id="supplier-table-scroll-instructions"
+                className="visually-hidden"
             >
-                <thead>
-                    <tr>
-                        <th scope="col" aria-sort={getAriaSort('name')}>
-                            <button
-                                type="button"
-                                className="table-sort-button"
-                                onClick={() => onSort('name')}
-                            >
-                                Supplier
-                                <span className="sort-indicator" aria-hidden="true">
-                                    {getSortIndicator('name')}
-                                </span>
-                            </button>
-                        </th>
-                        <th scope="col">Category</th>
-                        <th scope="col">Country</th>
-                        <th scope="col" aria-sort={getAriaSort('riskLevel')}>
-                            <button
-                                type="button"
-                                className="table-sort-button"
-                                onClick={() => onSort('riskLevel')}
-                            >
-                                Risk
-                                <span className="sort-indicator" aria-hidden="true">
-                                    {getSortIndicator('riskLevel')}
-                                </span>
-                            </button>
-                        </th>
-                        <th scope="col">Assessment</th>
-                        <th
-                            scope="col"
-                            aria-sort={getAriaSort('complianceScore')}
-                        >
-                            <button
-                                type="button"
-                                className="table-sort-button"
-                                onClick={() => onSort('complianceScore')}
-                            >
-                                Compliance
-                                <span className="sort-indicator" aria-hidden="true">
-                                    {getSortIndicator('complianceScore')}
-                                </span>
-                            </button>
-                        </th>
-                        <th
-                            scope="col"
-                            aria-sort={getAriaSort('lastAssessmentDate')}
-                        >
-                            <button
-                                type="button"
-                                className="table-sort-button"
-                                onClick={() => onSort('lastAssessmentDate')}
-                            >
-                                Last assessment
-                                <span className="sort-indicator" aria-hidden="true">
-                                    {getSortIndicator('lastAssessmentDate')}
-                                </span>
-                            </button>
-                        </th>
-                    </tr>
-                </thead>
+                Scroll horizontally to view all supplier information.
+            </p>
 
-                <tbody>
-                    {suppliers.map((supplier) => (
-                        <tr key={supplier.id}>
-                            <td>
-                                <div className="supplier-name">
+            <div
+                className="supplier-table-scroll"
+                role="region"
+                aria-label="Supplier records"
+                aria-describedby="supplier-table-scroll-instructions"
+                tabIndex={0}
+            >
+                <table
+                    className="supplier-table"
+                    aria-label="Supplier risk and compliance overview"
+                >
+                    <thead>
+                        <tr>
+                            <th scope="col" aria-sort={getAriaSort('name')}>
+                                <button
+                                    type="button"
+                                    className="table-sort-button"
+                                    onClick={() => onSort('name')}
+                                >
+                                    Supplier
+                                    <span className="sort-indicator" aria-hidden="true">
+                                        {getSortIndicator('name')}
+                                    </span>
+                                </button>
+                            </th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Country</th>
+                            <th scope="col" aria-sort={getAriaSort('riskLevel')}>
+                                <button
+                                    type="button"
+                                    className="table-sort-button"
+                                    onClick={() => onSort('riskLevel')}
+                                >
+                                    Risk
+                                    <span className="sort-indicator" aria-hidden="true">
+                                        {getSortIndicator('riskLevel')}
+                                    </span>
+                                </button>
+                            </th>
+                            <th scope="col">Assessment</th>
+                            <th
+                                scope="col"
+                                aria-sort={getAriaSort('complianceScore')}
+                            >
+                                <button
+                                    type="button"
+                                    className="table-sort-button"
+                                    onClick={() => onSort('complianceScore')}
+                                >
+                                    Compliance
+                                    <span className="sort-indicator" aria-hidden="true">
+                                        {getSortIndicator('complianceScore')}
+                                    </span>
+                                </button>
+                            </th>
+                            <th
+                                scope="col"
+                                aria-sort={getAriaSort('lastAssessmentDate')}
+                            >
+                                <button
+                                    type="button"
+                                    className="table-sort-button"
+                                    onClick={() => onSort('lastAssessmentDate')}
+                                >
+                                    Last assessment
+                                    <span className="sort-indicator" aria-hidden="true">
+                                        {getSortIndicator('lastAssessmentDate')}
+                                    </span>
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {suppliers.map((supplier) => (
+                            <tr key={supplier.id}>
+                                <td>
                                     <div className="supplier-name">
-                                        <button
-                                            type="button"
-                                            className="supplier-button"
-                                            onClick={() => onSelectSupplier(supplier)}
-                                        >
-                                            {supplier.name}
-                                        </button>
+                                        <div className="supplier-name">
+                                            <button
+                                                type="button"
+                                                className="supplier-button"
+                                                onClick={() => onSelectSupplier(supplier)}
+                                            >
+                                                {supplier.name}
+                                            </button>
 
+                                            <span>{supplier.id}</span>
+                                        </div>
                                         <span>{supplier.id}</span>
                                     </div>
-                                    <span>{supplier.id}</span>
-                                </div>
-                            </td>
-                            <td>{supplier.category}</td>
-                            <td>{supplier.country}</td>
-                            <td>
-                                <span className={`risk-badge risk-${supplier.riskLevel}`}>
-                                    {supplier.riskLevel}
-                                </span>
-                            </td>
-                            <td className="assessment-status">
-                                {formatLabel(supplier.assessmentStatus)}
-                            </td>
-                            <td>{supplier.complianceScore}%</td>
-                            <td>{formatDate(supplier.lastAssessmentDate)}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+                                </td>
+                                <td>{supplier.category}</td>
+                                <td>{supplier.country}</td>
+                                <td>
+                                    <span className={`risk-badge risk-${supplier.riskLevel}`}>
+                                        {supplier.riskLevel}
+                                    </span>
+                                </td>
+                                <td className="assessment-status">
+                                    {formatLabel(supplier.assessmentStatus)}
+                                </td>
+                                <td>{supplier.complianceScore}%</td>
+                                <td>{formatDate(supplier.lastAssessmentDate)}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     )
 }
