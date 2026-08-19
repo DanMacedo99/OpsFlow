@@ -1,0 +1,26 @@
+{
+  "name": "opsflow",
+  "version": "1.0.0",
+  "description": "App.css Arquivo",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --kill-others-on-fail --names frontend,backend --prefix-colors cyan,magenta \"npm --prefix frontend run dev\" \"npm --prefix backend run dev\"",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend run dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DanMacedo99/OpsFlow.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DanMacedo99/OpsFlow/issues"
+  },
+  "homepage": "https://github.com/DanMacedo99/OpsFlow#readme",
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}

@@ -1,52 +1,43 @@
+import { databasePool } from '../../config/database.js'
 import type { Supplier } from './supplier.types.js'
 
-const suppliers: Supplier[] = [
-    {
-        id: 'SUP-001',
-        name: 'Northstar Logistics',
-        category: 'Logistics',
-        country: 'Ireland',
-        riskLevel: 'high',
-        assessmentStatus: 'review-required',
-        complianceScore: 64,
-        lastAssessmentDate: '2026-08-10',
-    },
-    {
-        id: 'SUP-002',
-        name: 'BlueWave Technologies',
-        category: 'Technology',
-        country: 'Germany',
-        riskLevel: 'medium',
-        assessmentStatus: 'pending',
-        complianceScore: 78,
-        lastAssessmentDate: '2026-08-08',
-    },
-    {
-        id: 'SUP-003',
-        name: 'GreenFields Packaging',
-        category: 'Packaging',
-        country: 'United Kingdom',
-        riskLevel: 'low',
-        assessmentStatus: 'approved',
-        complianceScore: 96,
-        lastAssessmentDate: '2026-08-04',
-    },
-    {
-        id: 'SUP-004',
-        name: 'MedCore Supplies',
-        category: 'Healthcare',
-        country: 'France',
-        riskLevel: 'high',
-        assessmentStatus: 'pending',
-        complianceScore: 58,
-        lastAssessmentDate: '2026-07-29',
-    },
-]
+export async function findAllSuppliers(): Promise<Supplier[]> {
+    const result = await databasePool.query<Supplier>(`
+    SELECT
+      id,
+      name,
+      category,
+      country,
+      risk_level AS "riskLevel",
+      assessment_status AS "assessmentStatus",
+      compliance_score AS "complianceScore",
+      last_assessment_date::text AS "lastAssessmentDate"
+    FROM suppliers
+    ORDER BY id ASC
+  `)
 
-export function findAllSuppliers(): Promise<Supplier[]> {
-    const supplierCopies = suppliers.map((supplier) => ({
-        ...supplier,
-    }))
+    return result.rows
+}
 
-    return Promise.resolve(supplierCopies)
+export async function findSupplierById(
+    id: string,
+): Promise<Supplier | null> {
+    const result = await databasePool.query<Supplier>(
+        `
+      SELECT
+        id,
+        name,
+        category,
+        country,
+        risk_level AS "riskLevel",
+        assessment_status AS "assessmentStatus",
+        compliance_score AS "complianceScore",
+        last_assessment_date::text AS "lastAssessmentDate"
+      FROM suppliers
+      WHERE id = $1
+    `,
+        [id],
+    )
+
+    return result.rows[0] ?? null
 }
