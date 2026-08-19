@@ -1,5 +1,6 @@
 import express from 'express'
 import { supplierRouter } from './modules/suppliers/supplier.routes.js'
+import { errorHandler } from './middlewares/errorHandler.js'
 
 export const app = express()
 
@@ -13,3 +14,5 @@ app.get('/health', (_request, response) => {
 })
 
 app.use('/suppliers', supplierRouter)
+
+app.use(errorHandler)
