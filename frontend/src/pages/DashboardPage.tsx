@@ -257,7 +257,7 @@ function DashboardPage() {
 
         try {
             const updatedSupplier = await updateSupplier(
-                supplierBeingEdited.id,
+                supplierBeingEdited,
                 input,
             )
 

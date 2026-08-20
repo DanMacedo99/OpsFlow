@@ -1,8 +1,20 @@
 import express from 'express'
+import cors from 'cors'
 import { supplierRouter } from './modules/suppliers/supplier.routes.js'
 import { errorHandler } from './middlewares/errorHandler.js'
 
+
 export const app = express()
+
+app.use(
+    cors({
+        origin:
+            process.env.CORS_ORIGIN ??
+            'http://localhost:5173',
+    }),
+)
+
+app.use(express.json())
 
 app.use(express.json())
 
