@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { riskAssessmentRouter } from '../risk-assessments/riskAssessment.routes.js'
 import { validateBody } from '../../middlewares/validateBody.js'
 import {
     createSupplier,
@@ -21,6 +22,11 @@ supplierRouter.post(
     '/',
     validateBody(createSupplierSchema),
     createSupplier,
+)
+
+supplierRouter.use(
+    '/:supplierId/assessments',
+    riskAssessmentRouter,
 )
 
 supplierRouter.get('/:id', getSupplier)

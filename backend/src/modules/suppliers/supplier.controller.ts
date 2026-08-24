@@ -23,8 +23,8 @@ export async function getSuppliers(
     next: NextFunction,
 ): Promise<void> {
     try {
-        const suppliers = await listSuppliers()
 
+        const suppliers = await listSuppliers()
         response.status(200).json({
             data: suppliers,
         })
