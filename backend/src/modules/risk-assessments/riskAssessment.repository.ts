@@ -1,6 +1,10 @@
 import { databasePool } from '../../config/database.js'
 
-import type { RiskAssessment, CreateRiskAssessmentRecord } from './riskAssessment.types.js'
+import type {
+    RiskAssessment,
+    CreateRiskAssessmentRecord,
+    UpdateRiskAssessmentDecisionRecord
+} from './riskAssessment.types.js'
 
 export async function findRiskAssessmentsBySupplierId(
     supplierId: string,
@@ -16,8 +20,8 @@ export async function findRiskAssessmentsBySupplierId(
                     compliance_score AS "complianceScore",
                     decision,
                     document_status AS "documentStatus",
-                    assessment_date AS "assessmentDate",
-                    review_date AS "reviewDate",
+                    assessment_date::text AS "assessmentDate",
+                    review_date::text AS "reviewDate",
                     notes,
                     created_at AS "createdAt",
                     updated_at AS "updatedAt"
@@ -59,8 +63,8 @@ export async function insertRiskAssessment(
                         compliance_score AS "complianceScore",
                         decision,
                         document_status AS "documentStatus",
-                        assessment_date AS "assessmentDate",
-                        review_date AS "reviewDate",
+                        assessment_date::text AS "assessmentDate",
+                        review_date::text AS "reviewDate",
                         notes,
                         created_at AS "createdAt",
                         updated_at AS "updatedAt"
@@ -115,4 +119,73 @@ export async function insertRiskAssessment(
     } finally {
         client.release()
     }
+}
+
+export async function findRiskAssessmentById(
+    supplierId: string,
+    assessmentId: string,
+): Promise<RiskAssessment | null> {
+    const result = await databasePool.query<RiskAssessment>(
+        `
+            SELECT
+                id,
+                supplier_id AS "supplierId",
+                risk_score AS "riskScore",
+                risk_level AS "riskLevel",
+                compliance_score AS "complianceScore",
+                decision,
+                document_status AS "documentStatus",
+                assessment_date::text AS "assessmentDate",
+                review_date::text AS "reviewDate",
+                notes,
+                created_at AS "createdAt",
+                updated_at AS "updatedAt"
+            FROM risk_assessments
+            WHERE supplier_id = $1
+              AND id = $2
+        `,
+        [supplierId, assessmentId],
+    )
+
+    return result.rows[0] ?? null
+}
+
+export async function updateRiskAssessmentDecision(
+    input: UpdateRiskAssessmentDecisionRecord,
+): Promise<RiskAssessment | null> {
+    const result = await databasePool.query<RiskAssessment>(
+        `
+            UPDATE risk_assessments
+            SET
+                decision = $3,
+                assessment_date = $4,
+                review_date = $5,
+                updated_at = current_timestamp
+            WHERE id = $1
+              AND supplier_id = $2
+              AND decision = 'pending'
+            RETURNING
+                id,
+                supplier_id AS "supplierId",
+                risk_score AS "riskScore",
+                risk_level AS "riskLevel",
+                compliance_score AS "complianceScore",
+                decision,
+                document_status AS "documentStatus",
+                assessment_date::text AS "assessmentDate",
+                review_date::text AS "reviewDate",
+                notes,
+                created_at AS "createdAt",
+                updated_at AS "updatedAt"
+        `,
+        [
+            input.assessmentId,
+            input.supplierId,
+            input.decision,
+            input.assessmentDate,
+            input.reviewDate,
+        ],
+    )
+
+    return result.rows[0] ?? null
 }

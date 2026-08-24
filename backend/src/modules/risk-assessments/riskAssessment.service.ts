@@ -1,12 +1,23 @@
 import { assessmentCriteria } from './riskAssessment.criteria.js'
 import {
+    findRiskAssessmentById,
     findRiskAssessmentsBySupplierId,
     insertRiskAssessment,
+    updateRiskAssessmentDecision,
 } from './riskAssessment.repository.js'
 import { calculateAssessmentScores } from './riskAssessment.scoring.js'
-
-import type { CreateRiskAssessmentInput } from './riskAssessment.schema.js'
-import type { RiskAssessment } from './riskAssessment.types.js'
+import {
+    calculateReviewDate,
+    formatAssessmentDate,
+} from './riskAssessment.lifecycle.js'
+import type {
+    CreateRiskAssessmentInput,
+    UpdateRiskAssessmentDecisionInput,
+} from './riskAssessment.schema.js'
+import type {
+    FinalizeRiskAssessmentResult,
+    RiskAssessment,
+} from './riskAssessment.types.js'
 
 
 export function listRiskAssessmentsBySupplierId(
@@ -52,4 +63,68 @@ export async function createRiskAssessmentForSupplier(
         notes: input.notes,
         responses: responsesWithWeights,
     })
+}
+
+export async function finalizeRiskAssessment(
+    supplierId: string,
+    assessmentId: string,
+    input: UpdateRiskAssessmentDecisionInput,
+): Promise<FinalizeRiskAssessmentResult> {
+    const assessment = await findRiskAssessmentById(
+        supplierId,
+        assessmentId,
+    )
+
+    if (!assessment) {
+        return {
+            outcome: 'not-found',
+        }
+    }
+
+    if (assessment.decision !== 'pending') {
+        return {
+            outcome: 'already-finalized',
+        }
+    }
+
+    if (
+        input.decision === 'approved' &&
+        assessment.documentStatus !== 'verified'
+    ) {
+        return {
+            outcome: 'documents-not-verified',
+        }
+    }
+
+    const currentDate = new Date()
+    const assessmentDate =
+        formatAssessmentDate(currentDate)
+
+    const reviewDate =
+        input.decision === 'approved'
+            ? calculateReviewDate(
+                assessment.riskLevel,
+                currentDate,
+            )
+            : null
+
+    const updatedAssessment =
+        await updateRiskAssessmentDecision({
+            assessmentId,
+            supplierId,
+            decision: input.decision,
+            assessmentDate,
+            reviewDate,
+        })
+
+    if (!updatedAssessment) {
+        return {
+            outcome: 'already-finalized',
+        }
+    }
+
+    return {
+        outcome: 'updated',
+        assessment: updatedAssessment,
+    }
 }

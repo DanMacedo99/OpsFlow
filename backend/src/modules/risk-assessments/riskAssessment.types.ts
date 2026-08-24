@@ -64,3 +64,26 @@ export interface CreateRiskAssessmentRecord
     notes: string | null
     responses: StoredCriterionResponse[]
 }
+
+export interface UpdateRiskAssessmentDecisionRecord {
+    assessmentId: string
+    supplierId: string
+    decision: Exclude<AssessmentDecision, 'pending'>
+    assessmentDate: string
+    reviewDate: string | null
+}
+
+export type FinalizeRiskAssessmentResult =
+    | {
+        outcome: 'updated'
+        assessment: RiskAssessment
+    }
+    | {
+        outcome: 'not-found'
+    }
+    | {
+        outcome: 'already-finalized'
+    }
+    | {
+        outcome: 'documents-not-verified'
+    }

@@ -59,3 +59,11 @@ export const createRiskAssessmentSchema = z.object({
 export type CreateRiskAssessmentInput = z.infer<
     typeof createRiskAssessmentSchema
 >
+
+export const updateRiskAssessmentDecisionSchema = z.object({
+    decision: z.enum(['approved', 'rejected']),
+})
+
+export type UpdateRiskAssessmentDecisionInput = z.infer<
+    typeof updateRiskAssessmentDecisionSchema
+>
