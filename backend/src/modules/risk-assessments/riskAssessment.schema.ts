@@ -67,3 +67,18 @@ export const updateRiskAssessmentDecisionSchema = z.object({
 export type UpdateRiskAssessmentDecisionInput = z.infer<
     typeof updateRiskAssessmentDecisionSchema
 >
+
+export const updateRiskAssessmentDocumentStatusSchema =
+    z.object({
+        documentStatus: z.enum([
+            'missing',
+            'pending',
+            'verified',
+            'expired',
+        ]),
+    })
+
+export type UpdateRiskAssessmentDocumentStatusInput =
+    z.infer<
+        typeof updateRiskAssessmentDocumentStatusSchema
+    >

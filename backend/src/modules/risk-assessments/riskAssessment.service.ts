@@ -4,6 +4,7 @@ import {
     findRiskAssessmentsBySupplierId,
     insertRiskAssessment,
     updateRiskAssessmentDecision,
+    updateRiskAssessmentDocumentStatus,
 } from './riskAssessment.repository.js'
 import { calculateAssessmentScores } from './riskAssessment.scoring.js'
 import {
@@ -13,6 +14,7 @@ import {
 import type {
     CreateRiskAssessmentInput,
     UpdateRiskAssessmentDecisionInput,
+    UpdateRiskAssessmentDocumentStatusInput,
 } from './riskAssessment.schema.js'
 import type {
     FinalizeRiskAssessmentResult,
@@ -127,4 +129,16 @@ export async function finalizeRiskAssessment(
         outcome: 'updated',
         assessment: updatedAssessment,
     }
+}
+
+export function changeRiskAssessmentDocumentStatus(
+    supplierId: string,
+    assessmentId: string,
+    input: UpdateRiskAssessmentDocumentStatusInput,
+): Promise<RiskAssessment | null> {
+    return updateRiskAssessmentDocumentStatus({
+        supplierId,
+        assessmentId,
+        documentStatus: input.documentStatus,
+    })
 }

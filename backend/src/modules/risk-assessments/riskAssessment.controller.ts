@@ -8,11 +8,13 @@ import {
     createRiskAssessmentForSupplier,
     listRiskAssessmentsBySupplierId,
     finalizeRiskAssessment,
+    changeRiskAssessmentDocumentStatus,
 } from './riskAssessment.service.js'
 
 import type {
     CreateRiskAssessmentInput,
     UpdateRiskAssessmentDecisionInput,
+    UpdateRiskAssessmentDocumentStatusInput,
 } from './riskAssessment.schema.js'
 
 type SupplierParams = {
@@ -119,6 +121,41 @@ export async function finalizeSupplierRiskAssessment(
 
         response.status(200).json({
             data: result.assessment,
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+export async function changeSupplierRiskAssessmentDocumentStatus(
+    request: Request<
+        AssessmentParams,
+        unknown,
+        UpdateRiskAssessmentDocumentStatusInput
+    >,
+    response: Response,
+    next: NextFunction,
+): Promise<void> {
+    try {
+        const assessment =
+            await changeRiskAssessmentDocumentStatus(
+                request.params.supplierId,
+                request.params.assessmentId,
+                request.body,
+            )
+
+        if (!assessment) {
+            response.status(404).json({
+                error: {
+                    code: 'RISK_ASSESSMENT_NOT_FOUND',
+                    message: 'Risk assessment not found.',
+                },
+            })
+            return
+        }
+
+        response.status(200).json({
+            data: assessment,
         })
     } catch (error) {
         next(error)

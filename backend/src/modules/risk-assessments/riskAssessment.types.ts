@@ -73,6 +73,12 @@ export interface UpdateRiskAssessmentDecisionRecord {
     reviewDate: string | null
 }
 
+export interface UpdateRiskAssessmentDocumentStatusRecord {
+    assessmentId: string
+    supplierId: string
+    documentStatus: DocumentStatus
+}
+
 export type FinalizeRiskAssessmentResult =
     | {
         outcome: 'updated'
@@ -87,3 +93,5 @@ export type FinalizeRiskAssessmentResult =
     | {
         outcome: 'documents-not-verified'
     }
+
+

@@ -4,10 +4,12 @@ import {
     createSupplierRiskAssessment,
     finalizeSupplierRiskAssessment,
     getSupplierRiskAssessments,
+    changeSupplierRiskAssessmentDocumentStatus,
 } from './riskAssessment.controller.js'
 import {
     createRiskAssessmentSchema,
     updateRiskAssessmentDecisionSchema,
+    updateRiskAssessmentDocumentStatusSchema,
 } from './riskAssessment.schema.js'
 
 
@@ -29,4 +31,10 @@ riskAssessmentRouter.patch(
     '/:assessmentId/decision',
     validateBody(updateRiskAssessmentDecisionSchema),
     finalizeSupplierRiskAssessment,
+)
+
+riskAssessmentRouter.patch(
+    '/:assessmentId/document-status',
+    validateBody(updateRiskAssessmentDocumentStatusSchema),
+    changeSupplierRiskAssessmentDocumentStatus,
 )
