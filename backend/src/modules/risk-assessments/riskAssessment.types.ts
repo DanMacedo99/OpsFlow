@@ -95,3 +95,14 @@ export type FinalizeRiskAssessmentResult =
     }
 
 
+export interface RiskHistoryEntry {
+    assessmentId: string
+    previousRiskLevel: RiskLevel
+    currentRiskLevel: RiskLevel
+    previousRiskScore: number | null
+    currentRiskScore: number
+    complianceScore: number
+    decision: AssessmentDecision
+    assessmentDate: string
+    recordedAt: string
+}

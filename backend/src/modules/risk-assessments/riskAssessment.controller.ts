@@ -9,6 +9,7 @@ import {
     listRiskAssessmentsBySupplierId,
     finalizeRiskAssessment,
     changeRiskAssessmentDocumentStatus,
+    listRiskHistoryBySupplierId,
 } from './riskAssessment.service.js'
 
 import type {
@@ -156,6 +157,25 @@ export async function changeSupplierRiskAssessmentDocumentStatus(
 
         response.status(200).json({
             data: assessment,
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+export async function getSupplierRiskHistory(
+    request: Request<SupplierParams>,
+    response: Response,
+    next: NextFunction,
+): Promise<void> {
+    try {
+        const history =
+            await listRiskHistoryBySupplierId(
+                request.params.supplierId,
+            )
+
+        response.status(200).json({
+            data: history,
         })
     } catch (error) {
         next(error)

@@ -19,6 +19,7 @@ import type {
 import type {
     FinalizeRiskAssessmentResult,
     RiskAssessment,
+    RiskHistoryEntry,
 } from './riskAssessment.types.js'
 
 
@@ -141,4 +142,63 @@ export function changeRiskAssessmentDocumentStatus(
         assessmentId,
         documentStatus: input.documentStatus,
     })
+}
+
+export async function listRiskHistoryBySupplierId(
+    supplierId: string,
+): Promise<RiskHistoryEntry[]> {
+    const assessments =
+        await findRiskAssessmentsBySupplierId(supplierId)
+
+    const chronologicalAssessments = [
+        ...assessments,
+    ].reverse()
+
+    const history: RiskHistoryEntry[] = []
+
+    let previousRiskLevel: RiskAssessment['riskLevel'] =
+        'unassessed'
+
+    let previousRiskScore: number | null = null
+
+    for (const assessment of chronologicalAssessments) {
+        const currentRiskScore =
+            assessment.riskScore
+        const complianceScore =
+            assessment.complianceScore
+        const assessmentDate =
+            assessment.assessmentDate
+
+        if (
+            assessment.decision === 'pending' ||
+            currentRiskScore === null ||
+            complianceScore === null ||
+            assessmentDate === null
+        ) {
+            continue
+        }
+
+        const riskChanged =
+            previousRiskLevel !== assessment.riskLevel ||
+            previousRiskScore !== currentRiskScore
+
+        if (riskChanged) {
+            history.push({
+                assessmentId: assessment.id,
+                previousRiskLevel,
+                currentRiskLevel: assessment.riskLevel,
+                previousRiskScore,
+                currentRiskScore,
+                complianceScore,
+                decision: assessment.decision,
+                assessmentDate,
+                recordedAt: assessment.createdAt,
+            })
+        }
+
+        previousRiskLevel = assessment.riskLevel
+        previousRiskScore = currentRiskScore
+    }
+
+    return history.reverse()
 }

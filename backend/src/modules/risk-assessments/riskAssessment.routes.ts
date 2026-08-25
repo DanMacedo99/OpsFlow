@@ -5,6 +5,7 @@ import {
     finalizeSupplierRiskAssessment,
     getSupplierRiskAssessments,
     changeSupplierRiskAssessmentDocumentStatus,
+    getSupplierRiskHistory,
 } from './riskAssessment.controller.js'
 import {
     createRiskAssessmentSchema,
@@ -21,6 +22,12 @@ riskAssessmentRouter.get(
     '/',
     getSupplierRiskAssessments,
 )
+
+riskAssessmentRouter.get(
+    '/risk-history',
+    getSupplierRiskHistory,
+)
+
 riskAssessmentRouter.post(
     '/',
     validateBody(createRiskAssessmentSchema),
