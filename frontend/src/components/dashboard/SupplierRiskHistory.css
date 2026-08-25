@@ -1,0 +1,58 @@
+.risk-history {
+    padding-top: 24px;
+    margin-top: 24px;
+    border-top: 1px solid #eaecf0;
+}
+
+.risk-history h3 {
+    margin: 0 0 16px;
+    color: #101828;
+    font-size: 1rem;
+}
+
+.risk-history-message {
+    margin: 0;
+    color: #667085;
+    font-size: 0.875rem;
+}
+
+.risk-history-error {
+    color: #b42318;
+}
+
+.risk-history-list {
+    display: grid;
+    gap: 12px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.risk-history-item {
+    padding: 16px;
+    background-color: #f9fafb;
+    border: 1px solid #eaecf0;
+    border-radius: 8px;
+}
+
+.risk-history-item p {
+    margin: 0;
+}
+
+.risk-history-change {
+    color: #101828;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+.risk-history-detail {
+    margin-top: 6px !important;
+    color: #475467;
+    font-size: 0.875rem;
+}
+
+.risk-history-date {
+    margin-top: 10px !important;
+    color: #667085;
+    font-size: 0.75rem;
+}

@@ -5,11 +5,17 @@ import {
     useState,
     type Ref,
 } from 'react'
+import SupplierRiskHistory from './SupplierRiskHistory'
+import type {
+    RiskHistoryEntry,
+} from '../../types/riskAssessment'
 import './SupplierDetailsPanel.css'
-
 
 type SupplierDetailsPanelProps = {
     supplier: Supplier
+    riskHistory: RiskHistoryEntry[]
+    isLoadingRiskHistory: boolean
+    riskHistoryError: string | null
     editButtonRef?: Ref<HTMLButtonElement>
     onClose: () => void
     onEdit: () => void
@@ -22,6 +28,9 @@ function formatLabel(value: string) {
 
 function SupplierDetailsPanel({
     supplier,
+    riskHistory,
+    isLoadingRiskHistory,
+    riskHistoryError,
     editButtonRef,
     onEdit,
     onClose,
@@ -105,6 +114,12 @@ function SupplierDetailsPanel({
                     <dd>{supplier.complianceScore}%</dd>
                 </div>
             </dl>
+
+            <SupplierRiskHistory
+                history={riskHistory}
+                isLoading={isLoadingRiskHistory}
+                error={riskHistoryError}
+            />
             {isConfirmingDelete && (
                 <div
                     className="delete-confirmation"

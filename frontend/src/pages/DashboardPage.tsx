@@ -8,6 +8,12 @@ import SupplierForm from '../components/dashboard/SupplierForm'
 import FeedbackBanner, { type FeedbackVariant, } from '../components/common/FeedbackBanner'
 import SupplierFilters, { type SupplierRiskFilter, } from '../components/dashboard/SupplierFilters'
 import type {
+    RiskHistoryEntry,
+} from '../types/riskAssessment'
+import {
+    getSupplierRiskHistory,
+} from '../services/riskAssessmentService'
+import type {
     RiskLevel,
     SortDirection,
     Supplier,
@@ -73,6 +79,54 @@ function DashboardPage() {
     const [feedback, setFeedback] = useState<FeedbackState | null>(null)
     const addSupplierButtonRef = useRef<HTMLButtonElement>(null)
     const editSupplierButtonRef = useRef<HTMLButtonElement>(null)
+    const [riskHistory, setRiskHistory] = useState<RiskHistoryEntry[]>([])
+    const [isLoadingRiskHistory, setIsLoadingRiskHistory,] = useState(false)
+    const [riskHistoryError, setRiskHistoryError] = useState<string | null>(null)
+
+
+    const selectedSupplierId = selectedSupplier?.id
+
+    useEffect(() => {
+        let isActive = true
+
+        if (!selectedSupplierId) {
+            return
+        }
+        const supplierId = selectedSupplierId
+
+        async function loadRiskHistory() {
+            setIsLoadingRiskHistory(true)
+            setRiskHistoryError(null)
+
+            try {
+                const loadedRiskHistory =
+                    await getSupplierRiskHistory(
+                        supplierId,
+                    )
+
+                if (isActive) {
+                    setRiskHistory(loadedRiskHistory)
+                }
+            } catch {
+                if (isActive) {
+                    setRiskHistory([])
+                    setRiskHistoryError(
+                        'We could not load the risk history.',
+                    )
+                }
+            } finally {
+                if (isActive) {
+                    setIsLoadingRiskHistory(false)
+                }
+            }
+        }
+
+        void loadRiskHistory()
+
+        return () => {
+            isActive = false
+        }
+    }, [selectedSupplierId])
 
     useEffect(() => {
         let isActive = true
@@ -106,6 +160,8 @@ function DashboardPage() {
             isActive = false
         }
     }, [reloadKey])
+
+
 
     useEffect(() => {
         if (!feedback) {
@@ -471,6 +527,9 @@ function DashboardPage() {
                         <SupplierDetailsPanel
                             key={selectedSupplier.id}
                             supplier={selectedSupplier}
+                            riskHistory={riskHistory}
+                            isLoadingRiskHistory={isLoadingRiskHistory}
+                            riskHistoryError={riskHistoryError}
                             editButtonRef={editSupplierButtonRef}
                             onClose={() => {
                                 setSelectedSupplier(null)
