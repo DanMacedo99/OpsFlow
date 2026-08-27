@@ -1,12 +1,6 @@
-import 'dotenv/config'
+import { env } from './config/env.js'
 import { app } from './app.js'
 import { databasePool } from './config/database.js'
-
-const port = Number(process.env.PORT ?? 3000)
-
-if (Number.isNaN(port)) {
-    throw new Error('PORT must be a valid number.')
-}
 
 async function startServer(): Promise<void> {
     try {
@@ -14,9 +8,9 @@ async function startServer(): Promise<void> {
 
         console.log('Connected to PostgreSQL.')
 
-        app.listen(port, () => {
+        app.listen(env.PORT, () => {
             console.log(
-                `OpsFlow API running at http://localhost:${port}`,
+                `OpsFlow API running at http://localhost:${env.PORT}`,
             )
         })
     } catch (error) {
