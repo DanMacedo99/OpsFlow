@@ -1,3 +1,5 @@
+
+### Cadastrando usuario
 POST http://localhost:3000/auth/register
 Content-Type: application/json
 
@@ -5,5 +7,32 @@ Content-Type: application/json
     "organizationName": "OpsFlow Demo",
     "name": "Danilo Macedo",
     "email": "danilo@opsflow.test",
+    "password": "SecurePassword123!"
+}
+
+### Login
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+    "email": "danilo@opsflow.test",
+    "password": "SecurePassword123!"
+}
+
+### Login com senha incorreta
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+    "email": "danilo@opsflow.test",
+    "password": "WrongPassword123!"
+}
+
+### Login com e-mail inexistente
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+    "email": "unknown@opsflow.test",
     "password": "SecurePassword123!"
 }

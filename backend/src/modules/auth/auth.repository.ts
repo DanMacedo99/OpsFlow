@@ -96,3 +96,57 @@ export async function insertOrganizationAndAdmin(
         client.release()
     }
 }
+
+interface AuthenticationUserRow {
+    id: string
+    organization_id: string
+    name: string
+    email: string
+    password_hash: string
+    role: string
+}
+
+export interface AuthenticationUser {
+    id: string
+    organizationId: string
+    name: string
+    email: string
+    passwordHash: string
+    role: string
+}
+
+export async function findUserByEmail(
+    email: string,
+): Promise<AuthenticationUser | null> {
+    const result =
+        await databasePool.query<AuthenticationUserRow>(
+            `
+                SELECT
+                    id,
+                    organization_id,
+                    name,
+                    email,
+                    password_hash,
+                    role
+                FROM users
+                WHERE email = $1
+                LIMIT 1
+            `,
+            [email],
+        )
+
+    const user = result.rows[0]
+
+    if (!user) {
+        return null
+    }
+
+    return {
+        id: user.id,
+        organizationId: user.organization_id,
+        name: user.name,
+        email: user.email,
+        passwordHash: user.password_hash,
+        role: user.role,
+    }
+}

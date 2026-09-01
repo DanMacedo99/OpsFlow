@@ -1,5 +1,6 @@
 import {
     insertOrganizationAndAdmin,
+    findUserByEmail
 } from './auth.repository.js'
 
 import {
@@ -11,12 +12,19 @@ import {
 } from './auth.slug.js'
 
 import type {
+    LoginInput,
     RegisterAccountInput,
 } from './auth.schema.js'
 
 import type {
     RegistrationResult,
 } from './auth.types.js'
+
+import {
+    argon2id,
+    hash,
+    verify,
+} from 'argon2'
 
 import { AppError } from '../../errors/AppError.js'
 
@@ -67,4 +75,48 @@ function isPostgresUniqueViolation(
         'code' in error &&
         error.code === '23505'
     )
+}
+
+export interface LoginResult {
+    id: string
+    organizationId: string
+    name: string
+    email: string
+    role: string
+}
+
+export async function login(
+    input: LoginInput,
+): Promise<LoginResult> {
+    const user =
+        await findUserByEmail(input.email)
+
+    if (!user) {
+        throw new AppError(
+            401,
+            'INVALID_CREDENTIALS',
+            'Invalid email or password.',
+        )
+    }
+
+    const passwordMatches = await verify(
+        user.passwordHash,
+        input.password,
+    )
+
+    if (!passwordMatches) {
+        throw new AppError(
+            401,
+            'INVALID_CREDENTIALS',
+            'Invalid email or password.',
+        )
+    }
+
+    return {
+        id: user.id,
+        organizationId: user.organizationId,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+    }
 }
