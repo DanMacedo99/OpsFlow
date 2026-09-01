@@ -4,6 +4,7 @@ import { env } from './config/env.js'
 import cors from 'cors'
 import { supplierRouter } from './modules/suppliers/supplier.routes.js'
 import { errorHandler } from './middlewares/errorHandler.js'
+import { requireAuthentication } from './middlewares/requireAuthentication.js'
 import { authRouter } from './modules/auth/auth.routes.js'
 
 export const app = express()
@@ -29,6 +30,6 @@ app.get('/health', (_request, response) => {
 })
 
 app.use('/auth', authRouter)
-app.use('/suppliers', supplierRouter)
+app.use('/suppliers', requireAuthentication, supplierRouter)
 
 app.use(errorHandler)

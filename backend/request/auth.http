@@ -36,3 +36,12 @@ Content-Type: application/json
     "email": "unknown@opsflow.test",
     "password": "SecurePassword123!"
 }
+
+Adicione:
+
+### Logout
+POST http://localhost:3000/auth/logout
+
+### Suppliers
+GET http://localhost:3000/suppliers
+
