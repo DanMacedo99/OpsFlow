@@ -1,7 +1,9 @@
 import { databasePool } from '../../config/database.js'
 import type { Supplier } from './supplier.types.js'
 
-export async function findAllSuppliers(): Promise<Supplier[]> {
+export async function findAllSuppliers(
+  organizationId: string,
+): Promise<Supplier[]> {
   const result = await databasePool.query<Supplier>(`
     SELECT
       supplier.id,
@@ -64,14 +66,19 @@ export async function findAllSuppliers(): Promise<Supplier[]> {
       LIMIT 1
     ) AS latest_assessment ON true
 
+    WHERE supplier.organization_id = $1
+
     ORDER BY supplier.id ASC
-  `)
+    `,
+    [organizationId],
+  )
 
   return result.rows
 }
 
 export async function findSupplierById(
   id: string,
+  organizationId: string,
 ): Promise<Supplier | null> {
   const result = await databasePool.query<Supplier>(
     `
@@ -136,9 +143,10 @@ export async function findSupplierById(
         LIMIT 1
       ) AS latest_assessment ON true
 
-      WHERE supplier.id = $1
+      WHERE supplier.id = $1 
+      AND supplier.organization_id = $2
     `,
-    [id],
+    [id, organizationId],
   )
 
   return result.rows[0] ?? null
@@ -146,6 +154,7 @@ export async function findSupplierById(
 
 export async function insertSupplier(
   supplier: Supplier,
+  organizationId: string,
 ): Promise<Supplier> {
   const result = await databasePool.query<Supplier>(
     `
@@ -157,9 +166,10 @@ export async function insertSupplier(
         risk_level,
         assessment_status,
         compliance_score,
-        last_assessment_date
+        last_assessment_date,
+        organization_id
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING
         id,
         name,
@@ -179,6 +189,7 @@ export async function insertSupplier(
       supplier.assessmentStatus,
       supplier.complianceScore,
       supplier.lastAssessmentDate,
+      organizationId,
     ],
   )
 
@@ -195,6 +206,7 @@ export async function insertSupplier(
 
 export async function updateSupplierRecord(
   supplier: Supplier,
+  organizationId: string,
 ): Promise<Supplier | null> {
   const result = await databasePool.query<Supplier>(
     `
@@ -209,6 +221,7 @@ export async function updateSupplierRecord(
         last_assessment_date = $8,
         updated_at = current_timestamp
       WHERE id = $1
+      AND organization_id = $9
       RETURNING
         id,
         name,
@@ -228,6 +241,7 @@ export async function updateSupplierRecord(
       supplier.assessmentStatus,
       supplier.complianceScore,
       supplier.lastAssessmentDate,
+      organizationId,
     ],
   )
 
@@ -236,13 +250,14 @@ export async function updateSupplierRecord(
 
 export async function deleteSupplierById(
   id: string,
+  organizationId: string,
 ): Promise<boolean> {
   const result = await databasePool.query(
     `
       DELETE FROM suppliers
-      WHERE id = $1
+      WHERE id = $1 AND organization_id = $2
     `,
-    [id],
+    [id, organizationId],
   )
 
   return (result.rowCount ?? 0) > 0

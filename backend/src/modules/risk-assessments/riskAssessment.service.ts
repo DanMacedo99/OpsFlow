@@ -25,14 +25,16 @@ import type {
 
 export function listRiskAssessmentsBySupplierId(
     supplierId: string,
+    organizationId: string,
 ): Promise<RiskAssessment[]> {
-    return findRiskAssessmentsBySupplierId(supplierId)
+    return findRiskAssessmentsBySupplierId(supplierId, organizationId)
 }
 
 export async function createRiskAssessmentForSupplier(
     supplierId: string,
     input: CreateRiskAssessmentInput,
-): Promise<RiskAssessment> {
+    organizationId: string,
+): Promise<RiskAssessment | null> {
     const scores = calculateAssessmentScores(
         input.responses,
     )
@@ -65,17 +67,19 @@ export async function createRiskAssessmentForSupplier(
         documentStatus: input.documentStatus,
         notes: input.notes,
         responses: responsesWithWeights,
-    })
+    }, organizationId)
 }
 
 export async function finalizeRiskAssessment(
     supplierId: string,
     assessmentId: string,
     input: UpdateRiskAssessmentDecisionInput,
+    organizationId: string,
 ): Promise<FinalizeRiskAssessmentResult> {
     const assessment = await findRiskAssessmentById(
         supplierId,
         assessmentId,
+        organizationId,
     )
 
     if (!assessment) {
@@ -118,7 +122,7 @@ export async function finalizeRiskAssessment(
             decision: input.decision,
             assessmentDate,
             reviewDate,
-        })
+        }, organizationId)
 
     if (!updatedAssessment) {
         return {
@@ -136,19 +140,21 @@ export function changeRiskAssessmentDocumentStatus(
     supplierId: string,
     assessmentId: string,
     input: UpdateRiskAssessmentDocumentStatusInput,
+    organizationId: string,
 ): Promise<RiskAssessment | null> {
     return updateRiskAssessmentDocumentStatus({
         supplierId,
         assessmentId,
         documentStatus: input.documentStatus,
-    })
+    }, organizationId)
 }
 
 export async function listRiskHistoryBySupplierId(
     supplierId: string,
+    organizationId: string,
 ): Promise<RiskHistoryEntry[]> {
     const assessments =
-        await findRiskAssessmentsBySupplierId(supplierId)
+        await findRiskAssessmentsBySupplierId(supplierId, organizationId)
 
     const chronologicalAssessments = [
         ...assessments,

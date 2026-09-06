@@ -1,3 +1,5 @@
+import { AppError } from '../../errors/AppError.js'
+
 import type {
     NextFunction,
     Request,
@@ -32,9 +34,12 @@ export async function getSupplierRiskAssessments(
     next: NextFunction,
 ): Promise<void> {
     try {
+
+        const organizationId = getOrganizationId(request)
         const assessments =
             await listRiskAssessmentsBySupplierId(
                 request.params.supplierId,
+                organizationId
             )
 
         response.status(200).json({
@@ -55,11 +60,25 @@ export async function createSupplierRiskAssessment(
     next: NextFunction,
 ): Promise<void> {
     try {
+
+        const organizationId = getOrganizationId(request)
+
         const assessment =
             await createRiskAssessmentForSupplier(
                 request.params.supplierId,
                 request.body,
+                organizationId
             )
+
+        if (!assessment) {
+            response.status(404).json({
+                error: {
+                    code: 'SUPPLIER_NOT_FOUND',
+                    message: 'Supplier not found.',
+                },
+            })
+            return
+        }
 
         response.status(201).json({
             data: assessment,
@@ -79,10 +98,14 @@ export async function finalizeSupplierRiskAssessment(
     next: NextFunction,
 ): Promise<void> {
     try {
+
+        const organizationId = getOrganizationId(request)
+
         const result = await finalizeRiskAssessment(
             request.params.supplierId,
             request.params.assessmentId,
             request.body,
+            organizationId
         )
 
         if (result.outcome === 'not-found') {
@@ -138,11 +161,15 @@ export async function changeSupplierRiskAssessmentDocumentStatus(
     next: NextFunction,
 ): Promise<void> {
     try {
+
+        const organizationId = getOrganizationId(request)
         const assessment =
             await changeRiskAssessmentDocumentStatus(
                 request.params.supplierId,
                 request.params.assessmentId,
                 request.body,
+                organizationId
+
             )
 
         if (!assessment) {
@@ -169,9 +196,12 @@ export async function getSupplierRiskHistory(
     next: NextFunction,
 ): Promise<void> {
     try {
+
+        const organizationId = getOrganizationId(request)
         const history =
             await listRiskHistoryBySupplierId(
                 request.params.supplierId,
+                organizationId
             )
 
         response.status(200).json({
@@ -180,4 +210,21 @@ export async function getSupplierRiskHistory(
     } catch (error) {
         next(error)
     }
+}
+
+function getOrganizationId(
+    request: Request,
+): string {
+    const organizationId =
+        request.session.user?.organizationId
+
+    if (!organizationId) {
+        throw new AppError(
+            401,
+            'AUTHENTICATION_REQUIRED',
+            'Authentication is required.',
+        )
+    }
+
+    return organizationId
 }

@@ -1,3 +1,4 @@
+import { AppError } from '../../errors/AppError.js'
 import type {
     NextFunction,
     Request,
@@ -18,13 +19,25 @@ import type {
 } from './supplier.schema.js'
 
 export async function getSuppliers(
-    _request: Request,
+    request: Request,
     response: Response,
     next: NextFunction,
 ): Promise<void> {
     try {
+        const organizationId =
+            getOrganizationId(request)
 
-        const suppliers = await listSuppliers()
+        if (!organizationId) {
+            throw new AppError(
+                401,
+                'AUTHENTICATION_REQUIRED',
+                'Authentication is required.',
+            )
+        }
+
+        const suppliers =
+            await listSuppliers(organizationId)
+
         response.status(200).json({
             data: suppliers,
         })
@@ -32,16 +45,20 @@ export async function getSuppliers(
         next(error)
     }
 }
-
 export async function getSupplier(
     request: Request<{ id: string }>,
     response: Response,
     next: NextFunction,
 ): Promise<void> {
     try {
+        const organizationId =
+            getOrganizationId(request)
+
         const supplier = await getSupplierById(
             request.params.id,
+            organizationId,
         )
+
 
         if (!supplier) {
             response.status(404).json({
@@ -72,9 +89,13 @@ export async function createSupplier(
     next: NextFunction,
 ): Promise<void> {
     try {
+        const organizationId = getOrganizationId(request)
+
         const supplier = await createSupplierService(
             request.body,
+            organizationId,
         )
+
 
         response.status(201).json({
             data: supplier,
@@ -94,9 +115,12 @@ export async function updateSupplier(
     next: NextFunction,
 ): Promise<void> {
     try {
+
+        const organizationId = getOrganizationId(request)
         const supplier = await updateSupplierService(
             request.params.id,
             request.body,
+            organizationId,
         )
 
         if (!supplier) {
@@ -124,8 +148,11 @@ export async function deleteSupplier(
     next: NextFunction,
 ): Promise<void> {
     try {
+
+        const organizationId = getOrganizationId(request)
         const deleted = await deleteSupplierService(
             request.params.id,
+            organizationId
         )
 
         if (!deleted) {
@@ -143,4 +170,21 @@ export async function deleteSupplier(
     } catch (error) {
         next(error)
     }
+}
+
+function getOrganizationId(
+    request: Request,
+): string {
+    const organizationId =
+        request.session.user?.organizationId
+
+    if (!organizationId) {
+        throw new AppError(
+            401,
+            'AUTHENTICATION_REQUIRED',
+            'Authentication is required.',
+        )
+    }
+
+    return organizationId
 }

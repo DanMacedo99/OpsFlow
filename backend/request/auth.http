@@ -1,15 +1,3 @@
-
-### Cadastrando usuario
-POST http://localhost:3000/auth/register
-Content-Type: application/json
-
-{
-    "organizationName": "OpsFlow Demo",
-    "name": "Danilo Macedo",
-    "email": "danilo@opsflow.test",
-    "password": "SecurePassword123!"
-}
-
 ### Login
 POST http://localhost:3000/auth/login
 Content-Type: application/json
@@ -37,11 +25,134 @@ Content-Type: application/json
     "password": "SecurePassword123!"
 }
 
-Adicione:
-
 ### Logout
 POST http://localhost:3000/auth/logout
+
+
+### Cadastrando usuario
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+    "organizationName": "OpsFlow Demo",
+    "name": "Danilo Macedo",
+    "email": "danilo@opsflow.test",
+    "password": "SecurePassword123!"
+}
 
 ### Suppliers
 GET http://localhost:3000/suppliers
 
+### cadastrando fornecedor
+POST http://localhost:3000/suppliers
+Content-Type: application/json
+
+{
+    "name": "Tenant Test Supplier",
+    "category": "Technology",
+    "country": "Brazil",
+    "riskLevel": "unassessed",
+    "assessmentStatus": "pending",
+    "complianceScore": 0,
+    "lastAssessmentDate": null
+}
+
+### Register second organization
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+    "organizationName": "Isolation Test Company",
+    "name": "Test User",
+    "email": "isolation@opsflow.test",
+    "password": "SecurePassword123!"
+}
+
+### Login second organization
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+    "email": "isolation@opsflow.test",
+    "password": "SecurePassword123!"
+}
+
+
+### Try supplier from another organization
+GET http://localhost:3000/suppliers/SUP-001
+
+
+### Try updating supplier from another organization
+PUT  http://localhost:3000/suppliers/SUP-001
+Content-Type: application/json
+
+{
+    "name": "Unauthorized Update",
+    "category": "Logistics",
+    "country": "Ireland",
+    "riskLevel": "high",
+    "assessmentStatus": "review-required",
+    "complianceScore": 50,
+    "lastAssessmentDate": null
+}
+
+### Try deleting supplier from another organization
+DELETE http://localhost:3000/suppliers/SUP-001
+
+
+### Try creating assessment for supplier from another organization
+POST http://localhost:3000/suppliers/SUP-001/assessments
+Content-Type: application/json
+
+{
+    "documentStatus": "verified",
+    "notes": "Assessment created for tenant isolation test.",
+    "responses": [
+        {
+            "criterionKey": "information-security",
+            "score": 4,
+            "notes": "Security controls are documented."
+        },
+        {
+            "criterionKey": "data-protection",
+            "score": 4,
+            "notes": "Data protection practices are adequate."
+        },
+        {
+            "criterionKey": "regulatory-compliance",
+            "score": 3,
+            "notes": "Some compliance improvements are required."
+        },
+        {
+            "criterionKey": "operational-resilience",
+            "score": 4,
+            "notes": "Continuity procedures are available."
+        },
+        {
+            "criterionKey": "financial-stability",
+            "score": 3,
+            "notes": "Financial position appears acceptable."
+        }
+    ]
+}
+
+### List assessments from another organization
+GET http://localhost:3000/suppliers/SUP-001/assessments
+
+
+
+### Try finalizing assessment from another organization
+PATCH http://localhost:3000/suppliers/SUP-001/assessments/7bff8fa4-5cac-4a10-90bb-3440b704bfc3/decision
+Content-Type: application/json
+
+{
+    "decision": "approved"
+}
+
+### Try changing document status from another organization
+PATCH http://localhost:3000/suppliers/SUP-001/assessments/7bff8fa4-5cac-4a10-90bb-3440b704bfc3/document-status
+Content-Type: application/json
+
+{
+    "documentStatus": "verified"
+}

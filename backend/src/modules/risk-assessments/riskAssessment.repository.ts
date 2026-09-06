@@ -9,28 +9,35 @@ import type {
 
 export async function findRiskAssessmentsBySupplierId(
     supplierId: string,
+    organizationId: string,
 ): Promise<RiskAssessment[]> {
     const result =
         await databasePool.query<RiskAssessment>(
             `
                 SELECT
-                    id,
-                    supplier_id AS "supplierId",
-                    risk_score AS "riskScore",
-                    risk_level AS "riskLevel",
-                    compliance_score AS "complianceScore",
-                    decision,
-                    document_status AS "documentStatus",
-                    assessment_date::text AS "assessmentDate",
-                    review_date::text AS "reviewDate",
-                    notes,
-                    created_at AS "createdAt",
-                    updated_at AS "updatedAt"
-                FROM risk_assessments
-                WHERE supplier_id = $1
-                ORDER BY created_at DESC
+                    assessment.id,
+                    assessment.supplier_id AS "supplierId",
+                    assessment.risk_score AS "riskScore",
+                    assessment.risk_level AS "riskLevel",
+                    assessment.compliance_score AS "complianceScore",
+                    assessment.decision,
+                    assessment.document_status AS "documentStatus",
+                    assessment.assessment_date::text AS "assessmentDate",
+                    assessment.review_date::text AS "reviewDate",
+                    assessment.notes,
+                    assessment.created_at AS "createdAt",
+                    assessment.updated_at AS "updatedAt"
+                FROM risk_assessments AS assessment
+
+                INNER JOIN suppliers AS supplier
+                    ON supplier.id = assessment.supplier_id
+
+               WHERE assessment.supplier_id = $1
+                    AND supplier.organization_id = $2
+
+                    ORDER BY assessment.created_at DESC
             `,
-            [supplierId],
+            [supplierId, organizationId],
         )
 
     return result.rows
@@ -38,7 +45,8 @@ export async function findRiskAssessmentsBySupplierId(
 
 export async function insertRiskAssessment(
     input: CreateRiskAssessmentRecord,
-): Promise<RiskAssessment> {
+    organizationId: string,
+): Promise<RiskAssessment | null> {
     const client = await databasePool.connect()
 
     try {
@@ -55,7 +63,16 @@ export async function insertRiskAssessment(
                         document_status,
                         notes
                     )
-                    VALUES ($1, $2, $3, $4, $5, $6)
+                        SELECT
+                        supplier.id,
+                        $2,
+                        $3,
+                        $4,
+                        $5,
+                        $6
+                    FROM suppliers AS supplier
+                    WHERE supplier.id = $1
+                        AND supplier.organization_id = $7
                     RETURNING
                         id,
                         supplier_id AS "supplierId",
@@ -77,15 +94,15 @@ export async function insertRiskAssessment(
                     input.complianceScore,
                     input.documentStatus,
                     input.notes,
+                    organizationId,
                 ],
             )
 
         const assessment = assessmentResult.rows[0]
 
         if (!assessment) {
-            throw new Error(
-                'Failed to create risk assessment.',
-            )
+            await client.query('ROLLBACK')
+            return null
         }
 
         for (const response of input.responses) {
@@ -125,6 +142,7 @@ export async function insertRiskAssessment(
 export async function findRiskAssessmentById(
     supplierId: string,
     assessmentId: string,
+    organizationId: string,
 ): Promise<RiskAssessment | null> {
     const result = await databasePool.query<RiskAssessment>(
         `
@@ -144,8 +162,15 @@ export async function findRiskAssessmentById(
             FROM risk_assessments
             WHERE supplier_id = $1
               AND id = $2
+                AND EXISTS (
+                    SELECT 1
+                    FROM suppliers AS supplier
+                    WHERE supplier.id = risk_assessments.supplier_id
+                        AND supplier.organization_id = $3
+  )
+
         `,
-        [supplierId, assessmentId],
+        [supplierId, assessmentId, organizationId],
     )
 
     return result.rows[0] ?? null
@@ -153,6 +178,7 @@ export async function findRiskAssessmentById(
 
 export async function updateRiskAssessmentDecision(
     input: UpdateRiskAssessmentDecisionRecord,
+    organizationId: string,
 ): Promise<RiskAssessment | null> {
     const result = await databasePool.query<RiskAssessment>(
         `
@@ -165,6 +191,12 @@ export async function updateRiskAssessmentDecision(
             WHERE id = $1
               AND supplier_id = $2
               AND decision = 'pending'
+              AND EXISTS (
+                    SELECT 1
+                    FROM suppliers AS supplier
+                    WHERE supplier.id = risk_assessments.supplier_id
+                    AND supplier.organization_id = $6
+)
             RETURNING
                 id,
                 supplier_id AS "supplierId",
@@ -185,6 +217,7 @@ export async function updateRiskAssessmentDecision(
             input.decision,
             input.assessmentDate,
             input.reviewDate,
+            organizationId,
         ],
     )
 
@@ -193,6 +226,7 @@ export async function updateRiskAssessmentDecision(
 
 export async function updateRiskAssessmentDocumentStatus(
     input: UpdateRiskAssessmentDocumentStatusRecord,
+    organizationId: string,
 ): Promise<RiskAssessment | null> {
     const result = await databasePool.query<RiskAssessment>(
         `
@@ -202,6 +236,12 @@ export async function updateRiskAssessmentDocumentStatus(
                 updated_at = current_timestamp
             WHERE id = $1
               AND supplier_id = $2
+              AND EXISTS (
+                    SELECT 1
+                    FROM suppliers AS supplier
+                    WHERE supplier.id = risk_assessments.supplier_id
+                    AND supplier.organization_id = $4
+                )
             RETURNING
                 id,
                 supplier_id AS "supplierId",
@@ -220,6 +260,7 @@ export async function updateRiskAssessmentDocumentStatus(
             input.assessmentId,
             input.supplierId,
             input.documentStatus,
+            organizationId,
         ],
     )
 

@@ -13,26 +13,36 @@ import type {
     UpdateSupplierInput,
 } from './supplier.schema.js'
 import type { Supplier } from './supplier.types.js'
+import { request } from 'express'
 
-export function listSuppliers(): Promise<Supplier[]> {
-    return findAllSuppliers()
+
+export function listSuppliers(
+    organizationId: string,
+): Promise<Supplier[]> {
+    return findAllSuppliers(organizationId)
 }
 
 export function getSupplierById(
     id: string,
+    organizationId: string,
 ): Promise<Supplier | null> {
-    return findSupplierById(id)
+    return findSupplierById(
+        id,
+        organizationId,
+    )
 }
 
 export function createSupplier(
     input: CreateSupplierInput,
+    organizationId: string,
 ): Promise<Supplier> {
+
     const supplier: Supplier = {
         id: createSupplierId(),
         ...input,
     }
 
-    return insertSupplier(supplier)
+    return insertSupplier(supplier, organizationId)
 }
 
 function createSupplierId(): string {
@@ -46,17 +56,19 @@ function createSupplierId(): string {
 export function updateSupplier(
     id: string,
     input: UpdateSupplierInput,
+    organizationId: string,
 ): Promise<Supplier | null> {
     const supplier: Supplier = {
         id,
         ...input,
     }
 
-    return updateSupplierRecord(supplier)
+    return updateSupplierRecord(supplier, organizationId)
 }
 
 export function deleteSupplier(
     id: string,
+    organizationId: string,
 ): Promise<boolean> {
-    return deleteSupplierById(id)
+    return deleteSupplierById(id, organizationId)
 }
