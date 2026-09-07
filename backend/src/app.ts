@@ -6,6 +6,7 @@ import { supplierRouter } from './modules/suppliers/supplier.routes.js'
 import { errorHandler } from './middlewares/errorHandler.js'
 import { requireAuthentication } from './middlewares/requireAuthentication.js'
 import { authRouter } from './modules/auth/auth.routes.js'
+import { userRouter } from './modules/users/user.routes.js'
 
 export const app = express()
 
@@ -21,6 +22,11 @@ app.use(
 
 app.use(express.json())
 app.use(sessionMiddleware)
+app.use(
+    '/users',
+    requireAuthentication,
+    userRouter,
+)
 
 app.get('/health', (_request, response) => {
     response.status(200).json({

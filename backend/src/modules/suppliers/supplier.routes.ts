@@ -8,7 +8,9 @@ import {
     updateSupplier,
     deleteSupplier,
 } from './supplier.controller.js'
-
+import {
+    requireRole,
+} from '../../middlewares/requireRole.js'
 import {
     createSupplierSchema,
     updateSupplierSchema,
@@ -16,10 +18,23 @@ import {
 
 export const supplierRouter = Router()
 
-supplierRouter.get('/', getSuppliers)
+supplierRouter.get(
+    '/',
+    requireRole(
+        'admin',
+        'risk_manager',
+        'reviewer',
+        'viewer',
+    ),
+    getSuppliers,
+)
 
 supplierRouter.post(
     '/',
+    requireRole(
+        'admin',
+        'risk_manager',
+    ),
     validateBody(createSupplierSchema),
     createSupplier,
 )
@@ -29,15 +44,29 @@ supplierRouter.use(
     riskAssessmentRouter,
 )
 
-supplierRouter.get('/:id', getSupplier)
+supplierRouter.get(
+    '/:id',
+    requireRole(
+        'admin',
+        'risk_manager',
+        'reviewer',
+        'viewer',
+    ),
+    getSupplier,
+)
 
 supplierRouter.put(
     '/:id',
+    requireRole(
+        'admin',
+        'risk_manager',
+    ),
     validateBody(updateSupplierSchema),
     updateSupplier,
 )
 
 supplierRouter.delete(
     '/:id',
+    requireRole('admin'),
     deleteSupplier
 )

@@ -6,6 +6,10 @@ import type {
 } from 'express'
 
 import {
+    getAuthenticatedOrganizationId,
+} from '../auth/authSession.js'
+
+import {
     createSupplier as createSupplierService,
     deleteSupplier as deleteSupplierService,
     getSupplierById,
@@ -25,7 +29,7 @@ export async function getSuppliers(
 ): Promise<void> {
     try {
         const organizationId =
-            getOrganizationId(request)
+            getAuthenticatedOrganizationId(request)
 
         if (!organizationId) {
             throw new AppError(
@@ -52,7 +56,7 @@ export async function getSupplier(
 ): Promise<void> {
     try {
         const organizationId =
-            getOrganizationId(request)
+            getAuthenticatedOrganizationId(request)
 
         const supplier = await getSupplierById(
             request.params.id,
@@ -89,7 +93,7 @@ export async function createSupplier(
     next: NextFunction,
 ): Promise<void> {
     try {
-        const organizationId = getOrganizationId(request)
+        const organizationId = getAuthenticatedOrganizationId(request)
 
         const supplier = await createSupplierService(
             request.body,
@@ -116,7 +120,7 @@ export async function updateSupplier(
 ): Promise<void> {
     try {
 
-        const organizationId = getOrganizationId(request)
+        const organizationId = getAuthenticatedOrganizationId(request)
         const supplier = await updateSupplierService(
             request.params.id,
             request.body,
@@ -149,7 +153,7 @@ export async function deleteSupplier(
 ): Promise<void> {
     try {
 
-        const organizationId = getOrganizationId(request)
+        const organizationId = getAuthenticatedOrganizationId(request)
         const deleted = await deleteSupplierService(
             request.params.id,
             organizationId
@@ -172,19 +176,3 @@ export async function deleteSupplier(
     }
 }
 
-function getOrganizationId(
-    request: Request,
-): string {
-    const organizationId =
-        request.session.user?.organizationId
-
-    if (!organizationId) {
-        throw new AppError(
-            401,
-            'AUTHENTICATION_REQUIRED',
-            'Authentication is required.',
-        )
-    }
-
-    return organizationId
-}

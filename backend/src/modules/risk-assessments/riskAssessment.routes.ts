@@ -12,7 +12,9 @@ import {
     updateRiskAssessmentDecisionSchema,
     updateRiskAssessmentDocumentStatusSchema,
 } from './riskAssessment.schema.js'
-
+import {
+    requireRole,
+} from '../../middlewares/requireRole.js'
 
 export const riskAssessmentRouter = Router({
     mergeParams: true,
@@ -20,28 +22,54 @@ export const riskAssessmentRouter = Router({
 
 riskAssessmentRouter.get(
     '/',
+    requireRole(
+        'admin',
+        'risk_manager',
+        'reviewer',
+        'viewer',
+    ),
     getSupplierRiskAssessments,
 )
 
 riskAssessmentRouter.get(
     '/risk-history',
+    requireRole(
+        'admin',
+        'risk_manager',
+        'reviewer',
+        'viewer',
+    ),
     getSupplierRiskHistory,
 )
 
 riskAssessmentRouter.post(
     '/',
+    requireRole(
+        'admin',
+        'risk_manager',
+    ),
     validateBody(createRiskAssessmentSchema),
     createSupplierRiskAssessment,
 )
 
 riskAssessmentRouter.patch(
     '/:assessmentId/decision',
+    requireRole(
+        'admin',
+        'reviewer',
+    ),
     validateBody(updateRiskAssessmentDecisionSchema),
     finalizeSupplierRiskAssessment,
 )
 
 riskAssessmentRouter.patch(
     '/:assessmentId/document-status',
-    validateBody(updateRiskAssessmentDocumentStatusSchema),
+    requireRole(
+        'admin',
+        'risk_manager',
+    ),
+    validateBody(
+        updateRiskAssessmentDocumentStatusSchema,
+    ),
     changeSupplierRiskAssessmentDocumentStatus,
 )

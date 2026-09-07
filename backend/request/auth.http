@@ -1,4 +1,4 @@
-### Login
+### Login admin
 POST http://localhost:3000/auth/login
 Content-Type: application/json
 
@@ -25,6 +25,35 @@ Content-Type: application/json
     "password": "SecurePassword123!"
 }
 
+### Criar usuário Reviewer
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+    "name": "OpsFlow Reviewer",
+    "email": "reviewer@opsflow.test",
+    "password": "SecurePassword123!",
+    "role": "reviewer"
+}
+
+### Login second organization (user role: viewer)
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+    "email": "isolation@opsflow.test",
+    "password": "SecurePassword123!"
+}
+
+### Login com risk_manager
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+    "email": "reviewer@opsflow.test",
+    "password": "SecurePassword123!"
+}
+
 ### Logout
 POST http://localhost:3000/auth/logout
 
@@ -48,7 +77,7 @@ POST http://localhost:3000/suppliers
 Content-Type: application/json
 
 {
-    "name": "Tenant Test Supplier",
+    "name": "fake supplier",
     "category": "Technology",
     "country": "Brazil",
     "riskLevel": "unassessed",
@@ -68,14 +97,6 @@ Content-Type: application/json
     "password": "SecurePassword123!"
 }
 
-### Login second organization
-POST http://localhost:3000/auth/login
-Content-Type: application/json
-
-{
-    "email": "isolation@opsflow.test",
-    "password": "SecurePassword123!"
-}
 
 
 ### Try supplier from another organization
@@ -155,4 +176,27 @@ Content-Type: application/json
 
 {
     "documentStatus": "verified"
+}
+
+### Admin permission test
+DELETE http://localhost:3000/suppliers/SUP-NOT-FOUND
+
+
+### Viewer tentando listar usuários
+GET http://localhost:3000/users
+
+### Alterar reviewer para risk_manager
+PATCH http://localhost:3000/users/6b774916-3b60-4817-af29-ae9b6aa5afe1/role
+Content-Type: application/json
+
+{
+    "role": "risk_manager"
+}
+
+### Alterar usuário inexistente
+PATCH http://localhost:3000/users/00000000-0000-0000-0000-000000000000/role
+Content-Type: application/json
+
+{
+    "role": "viewer"
 }

@@ -1,6 +1,7 @@
 import {
     insertOrganizationAndAdmin,
-    findUserByEmail
+    findUserByEmail,
+    findActiveUserById,
 } from './auth.repository.js'
 
 import {
@@ -17,14 +18,16 @@ import type {
 } from './auth.schema.js'
 
 import type {
+    AuthUser,
     RegistrationResult,
+    UserRole,
 } from './auth.types.js'
 
 import {
-    argon2id,
-    hash,
     verify,
 } from 'argon2'
+
+import { isPostgresUniqueViolation } from '../../utils/postgresErrors.js'
 
 import { AppError } from '../../errors/AppError.js'
 
@@ -66,23 +69,13 @@ export async function registerAccount(
     }
 }
 
-function isPostgresUniqueViolation(
-    error: unknown,
-): boolean {
-    return (
-        typeof error === 'object' &&
-        error !== null &&
-        'code' in error &&
-        error.code === '23505'
-    )
-}
 
 export interface LoginResult {
     id: string
     organizationId: string
     name: string
     email: string
-    role: string
+    role: UserRole
 }
 
 export async function login(
@@ -119,4 +112,10 @@ export async function login(
         email: user.email,
         role: user.role,
     }
+}
+
+export function getActiveUserForSession(
+    userId: string,
+): Promise<AuthUser | null> {
+    return findActiveUserById(userId)
 }

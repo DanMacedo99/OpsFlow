@@ -7,6 +7,8 @@ import type {
     RegistrationResult,
 } from './auth.types.js'
 
+import { UserRole } from './auth.types.js'
+
 export async function insertOrganizationAndAdmin(
     input: RegisterAccountRecord,
 ): Promise<RegistrationResult> {
@@ -103,7 +105,7 @@ interface AuthenticationUserRow {
     name: string
     email: string
     password_hash: string
-    role: string
+    role: UserRole
 }
 
 export interface AuthenticationUser {
@@ -112,7 +114,7 @@ export interface AuthenticationUser {
     name: string
     email: string
     passwordHash: string
-    role: string
+    role: UserRole
 }
 
 export async function findUserByEmail(
@@ -149,4 +151,29 @@ export async function findUserByEmail(
         passwordHash: user.password_hash,
         role: user.role,
     }
+}
+
+export async function findActiveUserById(
+    id: string,
+): Promise<AuthUser | null> {
+    const result = await databasePool.query<AuthUser>(
+        `
+            SELECT
+                id,
+                organization_id AS "organizationId",
+                name,
+                email,
+                role,
+                is_active AS "isActive",
+                created_at::text AS "createdAt",
+                updated_at::text AS "updatedAt"
+            FROM users
+            WHERE id = $1
+              AND is_active = true
+            LIMIT 1
+        `,
+        [id],
+    )
+
+    return result.rows[0] ?? null
 }

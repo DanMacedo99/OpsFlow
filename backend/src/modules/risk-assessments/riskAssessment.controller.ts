@@ -7,6 +7,10 @@ import type {
 } from 'express'
 
 import {
+    getAuthenticatedOrganizationId,
+} from '../auth/authSession.js'
+
+import {
     createRiskAssessmentForSupplier,
     listRiskAssessmentsBySupplierId,
     finalizeRiskAssessment,
@@ -35,7 +39,7 @@ export async function getSupplierRiskAssessments(
 ): Promise<void> {
     try {
 
-        const organizationId = getOrganizationId(request)
+        const organizationId = getAuthenticatedOrganizationId(request)
         const assessments =
             await listRiskAssessmentsBySupplierId(
                 request.params.supplierId,
@@ -61,7 +65,7 @@ export async function createSupplierRiskAssessment(
 ): Promise<void> {
     try {
 
-        const organizationId = getOrganizationId(request)
+        const organizationId = getAuthenticatedOrganizationId(request)
 
         const assessment =
             await createRiskAssessmentForSupplier(
@@ -99,7 +103,7 @@ export async function finalizeSupplierRiskAssessment(
 ): Promise<void> {
     try {
 
-        const organizationId = getOrganizationId(request)
+        const organizationId = getAuthenticatedOrganizationId(request)
 
         const result = await finalizeRiskAssessment(
             request.params.supplierId,
@@ -162,7 +166,7 @@ export async function changeSupplierRiskAssessmentDocumentStatus(
 ): Promise<void> {
     try {
 
-        const organizationId = getOrganizationId(request)
+        const organizationId = getAuthenticatedOrganizationId(request)
         const assessment =
             await changeRiskAssessmentDocumentStatus(
                 request.params.supplierId,
@@ -197,7 +201,7 @@ export async function getSupplierRiskHistory(
 ): Promise<void> {
     try {
 
-        const organizationId = getOrganizationId(request)
+        const organizationId = getAuthenticatedOrganizationId(request)
         const history =
             await listRiskHistoryBySupplierId(
                 request.params.supplierId,
@@ -212,19 +216,3 @@ export async function getSupplierRiskHistory(
     }
 }
 
-function getOrganizationId(
-    request: Request,
-): string {
-    const organizationId =
-        request.session.user?.organizationId
-
-    if (!organizationId) {
-        throw new AppError(
-            401,
-            'AUTHENTICATION_REQUIRED',
-            'Authentication is required.',
-        )
-    }
-
-    return organizationId
-}

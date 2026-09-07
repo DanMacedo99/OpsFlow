@@ -1,8 +1,13 @@
+export const userRoles = [
+    'admin',
+    'risk_manager',
+    'reviewer',
+    'viewer',
+] as const
+
 export type UserRole =
-    | 'admin'
-    | 'risk_manager'
-    | 'reviewer'
-    | 'viewer'
+    (typeof userRoles)[number]
+
 
 export interface Organization {
     id: string

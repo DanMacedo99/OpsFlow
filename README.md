@@ -1,391 +1,99 @@
-
-
-App.css
-Arquivo
-
-DashboardPage.css
-Arquivo
-
-SupplierTable.css
-Arquivo
-eu fiz as alterações, e agora ta melhor já que verticalmente esta ocupando a tela inteira, porem o sidebar ocupa metade da tela quase horizontalmente, deixando o restante inteiramente espremido, porem a rolagem da tabela agora funciona
-
-
-Código colado.ts
-TypeScript
-import type { Supplier } from '../types/supplier'
-
-
-export const mockSuppliers: Supplier[] = [
-    {
-        id: 'SUP-001',
-        name: 'Northstar Logistics',
-        category: 'Logistics',
-        country: 'Ireland',
-        riskLevel: 'high',
-        assessmentStatus: 'review-required',
-        complianceScore: 64,
-        lastAssessmentDate: '2026-08-10',
-    },
-    {
-        id: 'SUP-002',
-        name: 'BlueWave Technologies',
-        category: 'Technology',
-        country: 'Germany',
-        riskLevel: 'medium',
-        assessmentStatus: 'pending',
-        complianceScore: 78,
-        lastAssessmentDate: '2026-08-08',
-    },
-    {
-        id: 'SUP-003',
-        name: 'GreenFields Packaging',
-        category: 'Packaging',
-        country: 'United Kingdom',
-        riskLevel: 'low',
-        assessmentStatus: 'approved',
-        complianceScore: 96,
-        lastAssessmentDate: '2026-08-04',
-    },
-    {
-        id: 'SUP-004',
-        name: 'MedCore Supplies',
-        category: 'Healthcare',
-        country: 'France',
-        riskLevel: 'high',
-        assessmentStatus: 'pending',
-        complianceScore: 58,
-        lastAssessmentDate: '2026-07-29',
-    },
-]
-
-
-DashboardPage.tsx
-TypeScript
-
-suppliers.ts
-TypeScript
-
-b70b47b7-fc9a-4bfc-a4b0-406803e1825d.png
-neste momento esta assim
-
-A estrutura agora está organizada
-
-
-também acho que devemos atualizar o readme
-
-Sim. Como mudamos a estrutura do repositório e iniciamos a Fase 2, o README.md precisa refletir:
-
-estrutura frontend/ e backend/;
-
-tecnologias utilizadas;
-
-funcionalidades concluídas;
-
-instruções atualizadas para executar o frontend;
-
-status inicial do backend;
-
-próxima etapa do roadmap.
-
-Antes do commit, execute na raiz:
-
-cat README.md
-Cole aqui o conteúdo completo. Vou reescrevê-lo preservando o que ainda estiver correto e atualizando a estrutura e os comandos.
-
-
-# OpsFlow
-
-A modular business operations platform focused on supplier risk, compliance monitoring, assessments and operational workflows.
-
-The first OpsFlow module is a **Supplier Risk and Compliance Dashboard**, built to demonstrate how frontend engineering can support real business processes through typed data models, reusable components and accessible interfaces.
-
-## Current Features
-
-- Supplier risk and compliance dashboard
-- Risk overview metric cards
-- Typed supplier data model
-- Supplier table with:
-  - Risk level
-  - Assessment status
-  - Compliance score
-  - Last assessment date
-- Supplier details panel
-- Local supplier creation
-- Supplier deletion with confirmation
-- Reusable React components
-- Adaptive CSS Grid layouts
-- Semantic HTML and keyboard focus states
-
-## Current Project Status
-
-OpsFlow is currently in active frontend development.
-
-Supplier records are stored temporarily in React state and initialised from mock data. Creating or deleting a supplier does not persist after refreshing the page.
-
-A backend API and PostgreSQL persistence will be added in a later development stage.
-
-## Tech Stack
-
-### Frontend
-
-- React
-- TypeScript
-- Vite
-- CSS
-- HTML5 semantic elements
-
-### Development Quality
-
-- ESLint
-- TypeScript static type checking
-- Production build validation
-- Git and GitHub
-- Component-based architecture
-
-## Project Structure
-
-text
-src/
-├── components/
-│   ├── dashboard/
-│   │   ├── AddSupplierForm.tsx
-│   │   ├── MetricCard.tsx
-│   │   ├── SupplierDetailsPanel.tsx
-│   │   └── SupplierTable.tsx
-│   └── layout/
-│       ├── PageHeader.tsx
-│       └── Sidebar.tsx
-├── data/
-│   └── suppliers.ts
-├── pages/
-│   └── DashboardPage.tsx
-├── types/
-│   └── supplier.ts
-├── App.tsx
-└── main.tsx
-
-
-## Getting Started
-
-### Requirements
-
-- Node.js
-- npm
-- Git
-
-### Installation
-
-Clone the repository:
-
-bash
-git clone git@github.com:DanMacedo99/OpsFlow.git
-
-
-Enter the project:
-
-bash
-cd OpsFlow
-
-
-Install the dependencies:
-
-bash
-npm install
-
-
-Start the development server:
-
-bash
-npm run dev
-
-
-Open the local address shown by Vite in the terminal.
-
-## Available Scripts
-
-bash
-npm run dev
-
-
-Starts the Vite development server with Hot Module Replacement.
-
-bash
-npm run lint
-
-
-Analyses the project using ESLint.
-
-bash
-npm run build
-
-
-Runs TypeScript validation and creates the production build.
-
-bash
-npm run preview
-
-
-Serves the production build locally for verification.
-
-## Data Model
-
-Supplier records currently include:
-
-ts
-type Supplier = {
-  id: string
-  name: string
-  category: string
-  country: string
-  riskLevel: 'unassessed' | 'low' | 'medium' | 'high'
-  assessmentStatus: 'approved' | 'pending' | 'review-required'
-  complianceScore: number
-  lastAssessmentDate: string | null
-}
-
-
-The TypeScript model prevents invalid risk levels, missing required properties and inconsistent supplier data during development.
-
-## Planned Development
-
-### Frontend
-
-- Dynamic dashboard metrics
-- Supplier search, filters and sorting
-- Supplier editing
-- Form validation and user feedback
-- Additional pages and functional navigation
-- Loading, error and empty states
-- Responsive mobile navigation
-- Accessibility improvements
-
-### Backend and Data
-
-- Node.js and Express REST API
-- PostgreSQL persistence
-- Runtime validation
-- Structured error handling
-- Database migrations
-- Health checks and application logging
-
-### Security and Workflows
-
-- Authentication
-- Role-Based Access Control
-- Supplier assessments
-- Approval workflows
-- Compliance document tracking
-- Audit logs
-
-### Engineering Quality
-
-- Automated tests with Vitest and React Testing Library
-- API and business-rule testing
-- GitHub Actions CI/CD
-- Deployment configuration
-- Production environment variables
-
-## Long-Term Vision
-
-OpsFlow is designed as a reusable operational platform that can later be adapted to different business domains, including:
-
-- Supplier risk and compliance
-- Engineering operations
-- Financial operations
-- Healthcare workflows
-- AI and document processing
-
-The underlying architecture will remain reusable while the data models, workflows and interfaces change according to each industry.
-
-Atualizei o README para refletir:
-
-frontend concluído e movido para frontend/;
-
-backend iniciado em backend/;
-
-CRUD, navegação, responsividade e acessibilidade já concluídos;
-
-supplierService e armazenamento temporário em memória;
-
-Fase 2 ativa, ainda sem REST API e PostgreSQL;
-
-novos comandos de instalação e execução.
-
-Use esta versão para substituir o README.md da raiz:
-
-README.md
-
-Depois confira:
-
-git diff -- README.md
-Se estiver correto, registraremos toda a reorganização no mesmo commit.
-
-
-README.md
-Documento
-
-
-Biblioteca
-/
-Posicionamento Profissional
-/
-README.md
-
-
 OpsFlow
-OpsFlow is a modular business operations platform focused on supplier risk, compliance monitoring, assessments and operational workflows.
 
-The first OpsFlow module is a Supplier Risk and Compliance Dashboard, built to demonstrate how frontend engineering can support real business processes through typed data models, reusable components, accessible interfaces and a scalable full-stack architecture.
+OpsFlow is a modular business operations platform for supplier risk, compliance monitoring, assessments and operational workflows.
+
+Its first module is a multi-tenant Supplier Risk and Compliance Platform. It demonstrates how a typed React interface, a layered REST API and PostgreSQL can support real business processes while keeping each organisation's data isolated.
 
 Current Features
-Supplier risk and compliance dashboard
 
-Dynamic risk overview metrics
+Supplier management
 
-Typed supplier data model
+Supplier dashboard with dynamic metrics
 
-Supplier table with:
+Supplier creation, listing, details, editing and deletion
 
-risk level;
+Search, filtering and table sorting
 
-assessment status;
-
-compliance score;
-
-last assessment date.
-
-Supplier details panel
-
-Supplier creation, editing and deletion
-
-Search, risk filtering and table sorting
+Risk level, assessment status and compliance score tracking
 
 Loading, error, retry and empty states
 
-User feedback and deletion confirmation
+Responsive layouts and accessible keyboard navigation
 
-Functional navigation with React Router
+Risk assessments
 
-Dashboard, Suppliers, Assessments, Reports and Settings pages
+Weighted assessment criteria
 
-Responsive layouts and mobile table scrolling
+Automatic risk and compliance score calculation
 
-Semantic HTML and accessible keyboard navigation
+Risk levels derived from assessment results
 
-Focus management and screen reader support
+Pending, approved and rejected decisions
 
-Frontend service layer prepared for REST API integration
+Compliance document status tracking
+
+Review-date calculation based on risk level
+
+Supplier risk history
+
+Transactional creation of assessments and their responses
+
+Authentication and security
+
+Organisation and administrator registration
+
+Password hashing with Argon2id
+
+Login and logout endpoints
+
+Server-side sessions stored in PostgreSQL
+
+Signed, HttpOnly session cookies
+
+Protected supplier and assessment routes
+
+Standardised application errors and safe HTTP responses
+
+Duplicate registration handling with 409 Conflict
+
+Environment validation with Zod
+
+Multi-tenancy
+
+Users belong to an organisation
+
+Suppliers belong to an organisation
+
+The organisation ID is obtained from the authenticated session, never from the request body
+
+Supplier queries are scoped by organisation
+
+Risk assessments are scoped through their parent supplier
+
+Cross-organisation access returns 404 Not Found without exposing another tenant's data
 
 Current Project Status
-The frontend phase is complete. Supplier operations now pass through a dedicated supplierService, keeping data access separate from the React interface.
 
-Supplier records are still stored temporarily in memory and initialised from mock data. Changes remain available while the application is running but reset after a full browser refresh.
+The frontend dashboard, supplier REST API, PostgreSQL persistence, risk-assessment workflow, session authentication and organisation-level data isolation are implemented.
 
-The project is now entering backend development. A separate Node.js, Express and TypeScript workspace has been created, but the REST API and PostgreSQL persistence are not implemented yet.
+The following access roles are defined:
+
+admin
+
+risk_manager
+
+reviewer
+
+viewer
+
+The first registered user of an organisation receives the admin role. Role-based permissions for individual operations are the next security milestone.
+
+OpsFlow is under active development and is not yet production-ready. Automated testing, audit logs, actor tracking, CI/CD and deployment configuration remain planned.
 
 Tech Stack
+
 Frontend
+
 React
 
 TypeScript
@@ -398,29 +106,80 @@ CSS
 
 Semantic HTML5
 
-Backend Foundation
+Backend
+
 Node.js
 
 Express
 
 TypeScript
 
-tsx development runtime
+Zod
 
-Development Quality
-ESLint
+PostgreSQL
 
-TypeScript static type checking
+pg
 
-Production build validation
+node-pg-migrate
+
+Argon2
+
+express-session
+
+connect-pg-simple
+
+Engineering practices
+
+Layered backend architecture
+
+Runtime and static type validation
+
+Parameterised SQL queries
+
+Database migrations
+
+PostgreSQL transactions
+
+Centralised error handling
+
+Environment-based configuration
+
+ESLint and production build validation
 
 Git and GitHub
 
-Component-based architecture
-
 Accessible interaction patterns
 
+Architecture
+
+Backend requests follow this flow:
+
+Route
+  -> validation middleware
+  -> authentication middleware
+  -> controller
+  -> service
+  -> repository
+  -> PostgreSQL
+
+Each layer has a focused responsibility:
+
+Routes define endpoints and middleware order.
+
+Controllers receive HTTP requests and create HTTP responses.
+
+Services contain business rules and workflow decisions.
+
+Repositories execute parameterised PostgreSQL queries.
+
+Schemas validate external input at runtime with Zod.
+
+Migrations version database structure changes.
+
+Middlewares handle authentication, validation and errors.
+
 Project Structure
+
 opsflow/
 ├── frontend/
 │   ├── public/
@@ -430,141 +189,233 @@ opsflow/
 │   │   │   ├── dashboard/
 │   │   │   └── layout/
 │   │   ├── data/
-│   │   │   └── suppliers.ts
 │   │   ├── pages/
-│   │   │   ├── DashboardPage.tsx
-│   │   │   ├── SuppliersPage.tsx
-│   │   │   ├── AssessmentsPage.tsx
-│   │   │   ├── ReportsPage.tsx
-│   │   │   └── SettingsPage.tsx
 │   │   ├── services/
-│   │   │   └── supplierService.ts
 │   │   ├── types/
-│   │   │   └── supplier.ts
 │   │   ├── App.tsx
 │   │   └── main.tsx
 │   ├── package.json
 │   └── vite.config.ts
 ├── backend/
+│   ├── migrations/
+│   ├── request/
+│   ├── src/
+│   │   ├── config/
+│   │   ├── errors/
+│   │   ├── middlewares/
+│   │   ├── modules/
+│   │   │   ├── auth/
+│   │   │   ├── suppliers/
+│   │   │   └── risk-assessments/
+│   │   ├── types/
+│   │   ├── app.ts
+│   │   └── server.ts
+│   ├── .env.example
 │   ├── package.json
 │   └── tsconfig.json
 ├── .gitignore
 └── README.md
-Getting Started
-Requirements
-Node.js
-
-npm
-
-Git
-
-Installation
-Clone the repository:
-
-git clone git@github.com:DanMacedo99/OpsFlow.git
-Enter the project:
-
-cd OpsFlow
-Install the frontend dependencies:
-
-cd frontend
-npm install
-Start the frontend development server:
-
-npm run dev
-Open the local address shown by Vite in the terminal.
-
-The backend workspace can be prepared separately from the project root:
-
-cd backend
-npm install
-The backend server will become available as the REST API is implemented.
-
-Frontend Scripts
-npm run dev
-Starts the Vite development server with Hot Module Replacement.
-
-npm run lint
-Analyses the frontend using ESLint.
-
-npm run build
-Runs TypeScript validation and creates the production build.
-
-npm run preview
-Serves the production build locally for verification.
 
 Data Model
-Supplier records currently include:
 
-type Supplier = {
-  id: string
-  name: string
-  category: string
-  country: string
-  riskLevel: 'unassessed' | 'low' | 'medium' | 'high'
-  assessmentStatus: 'approved' | 'pending' | 'review-required'
-  complianceScore: number
-  lastAssessmentDate: string | null
-}
-The TypeScript model prevents invalid risk levels, missing required properties and inconsistent supplier data during development.
+The main PostgreSQL relationships are:
 
-Active Development — REST API and PostgreSQL
-The current development phase will add:
+organisations
+  -> users
+  -> suppliers
+       -> risk_assessments
+            -> risk_assessment_responses
 
-Express server configuration
+sessions
+  -> authenticated user and organisation context
 
-Routes, controllers, services and repositories
+The session stores the authenticated user's ID, organisation ID and role. The browser cookie stores only the signed session identifier; passwords and full user data are not stored in the cookie or in localStorage.
 
-PostgreSQL persistence
+API Endpoints
 
-Supplier database schema and migrations
+Health
 
-Runtime validation with Zod
+GET /health
 
-Standardised API errors
+Authentication
 
-Environment variables
+POST /auth/register
+POST /auth/login
+POST /auth/logout
 
-Loading, error and retry handling for real requests
+Suppliers
 
-Frontend integration with the REST API
-
-The planned supplier endpoints are:
+These routes require an authenticated session:
 
 GET    /suppliers
 GET    /suppliers/:id
 POST   /suppliers
 PUT    /suppliers/:id
 DELETE /suppliers/:id
-Future Development
-Supplier risk assessments and compliance workflows
 
-Authentication and Role-Based Access Control
+Risk assessments
 
-Multi-tenant organisation data
+GET   /suppliers/:supplierId/assessments
+GET   /suppliers/:supplierId/assessments/risk-history
+POST  /suppliers/:supplierId/assessments
+PATCH /suppliers/:supplierId/assessments/:assessmentId/decision
+PATCH /suppliers/:supplierId/assessments/:assessmentId/document-status
+
+Getting Started
+
+Requirements
+
+Node.js
+
+npm
+
+PostgreSQL
+
+Git
+
+1. Clone the repository
+
+git clone git@github.com:DanMacedo99/OpsFlow.git
+cd OpsFlow
+
+2. Install dependencies
+
+cd frontend
+npm install
+
+cd ../backend
+npm install
+
+3. Configure the backend environment
+
+Create backend/.env from backend/.env.example and provide your local PostgreSQL connection values.
+
+Generate a secure session secret:
+
+node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
+
+Place the generated value in SESSION_SECRET. Never commit the real .env file.
+
+4. Run database migrations
+
+From backend/:
+
+npm run migrate:up
+
+5. Start the backend
+
+From backend/:
+
+npm run dev
+
+The API runs by default at:
+
+http://localhost:3000
+
+6. Start the frontend
+
+In a second terminal, from frontend/:
+
+npm run dev
+
+Vite runs by default at:
+
+http://localhost:5173
+
+Validation Commands
+
+Run these commands inside the relevant workspace:
+
+npm run lint
+npm run build
+
+lint analyses code quality and ESLint rules.
+
+build validates TypeScript and creates the production build.
+
+Security Model
+
+Authentication and tenant isolation solve different problems:
+
+Authentication confirms that a session belongs to a logged-in user.
+
+Tenant isolation restricts that user to records belonging to their organisation.
+
+Authorisation will determine which operations are allowed for each role.
+
+Current tenant-sensitive operations use the organisation ID stored in the server-side session. Client-provided organisation IDs are not trusted.
+
+Roadmap
+
+Completed
+
+Frontend dashboard and supplier workflows
+
+Express REST API
+
+PostgreSQL persistence and migrations
+
+Supplier CRUD
+
+Risk-assessment scoring and lifecycle
+
+Registration, login and logout
+
+Argon2id password protection
+
+PostgreSQL-backed sessions
+
+Protected routes
+
+Users linked to organisations
+
+Supplier and assessment isolation by organisation
+
+Base access roles
+
+Next
+
+Role-Based Access Control permissions per operation
 
 Audit logs
 
-Automated frontend, API and business-rule testing
+Record who created, edited, assessed or deleted information
+
+Automated frontend and backend tests
+
+API and business-rule integration tests
+
+Frontend authentication screens and role-aware UI
+
+CI/CD with GitHub Actions
+
+Docker and deployment configuration
+
+Production logging and monitoring
+
+Longer term
 
 Real-time updates with WebSockets
 
-Python document processing, AI and RAG
+Compliance document upload and processing
 
-Docker, CI/CD, deployment and production monitoring
+Python-based document analysis
+
+AI-assisted risk insights and RAG
 
 Long-Term Vision
-OpsFlow is designed as a reusable operational platform that can later be adapted to different business domains, including:
 
-Supplier risk and compliance
+OpsFlow is designed as a reusable operational platform that can be adapted to different domains, including:
 
-Engineering operations
+supplier risk and compliance;
 
-Financial and trading operations
+engineering operations;
 
-Healthcare workflows
+financial and trading operations;
 
-AI and document processing
+healthcare workflows;
 
-The underlying architecture will remain reusable while the data models, workflows and interfaces change according to each industry.
+AI and document processing.
+
+The architecture remains reusable while data models, rules and interfaces evolve for each industry.
 
