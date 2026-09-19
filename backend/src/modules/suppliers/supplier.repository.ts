@@ -1,5 +1,6 @@
 import { databasePool } from '../../config/database.js'
 import type { Supplier } from './supplier.types.js'
+import type { PoolClient } from 'pg'
 
 export async function findAllSuppliers(
   organizationId: string,
@@ -153,10 +154,11 @@ export async function findSupplierById(
 }
 
 export async function insertSupplier(
+  client: PoolClient,
   supplier: Supplier,
   organizationId: string,
 ): Promise<Supplier> {
-  const result = await databasePool.query<Supplier>(
+  const result = await client.query<Supplier>(
     `
       INSERT INTO suppliers (
         id,
@@ -205,10 +207,11 @@ export async function insertSupplier(
 }
 
 export async function updateSupplierRecord(
+  client: PoolClient,
   supplier: Supplier,
   organizationId: string,
 ): Promise<Supplier | null> {
-  const result = await databasePool.query<Supplier>(
+  const result = await client.query<Supplier>(
     `
       UPDATE suppliers
       SET
@@ -248,11 +251,39 @@ export async function updateSupplierRecord(
   return result.rows[0] ?? null
 }
 
+export async function findSupplierByIdForUpdate(
+  client: PoolClient,
+  id: string,
+  organizationId: string,
+): Promise<Supplier | null> {
+  const result = await client.query<Supplier>(
+    `
+      SELECT
+        id,
+        name,
+        category,
+        country,
+        risk_level AS "riskLevel",
+        assessment_status AS "assessmentStatus",
+        compliance_score AS "complianceScore",
+        last_assessment_date::text AS "lastAssessmentDate"
+      FROM suppliers
+      WHERE id = $1
+        AND organization_id = $2
+      FOR UPDATE
+    `,
+    [id, organizationId],
+  )
+
+  return result.rows[0] ?? null
+}
+
 export async function deleteSupplierById(
+  client: PoolClient,
   id: string,
   organizationId: string,
 ): Promise<boolean> {
-  const result = await databasePool.query(
+  const result = await client.query(
     `
       DELETE FROM suppliers
       WHERE id = $1 AND organization_id = $2

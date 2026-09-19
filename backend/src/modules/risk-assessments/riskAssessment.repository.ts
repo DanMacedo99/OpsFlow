@@ -1,5 +1,5 @@
 import { databasePool } from '../../config/database.js'
-
+import type { PoolClient } from 'pg'
 import type {
     RiskAssessment,
     CreateRiskAssessmentRecord,
@@ -44,17 +44,14 @@ export async function findRiskAssessmentsBySupplierId(
 }
 
 export async function insertRiskAssessment(
+    client: PoolClient,
     input: CreateRiskAssessmentRecord,
     organizationId: string,
 ): Promise<RiskAssessment | null> {
-    const client = await databasePool.connect()
 
-    try {
-        await client.query('BEGIN')
+    const assessmentResult = await client.query<RiskAssessment>(
 
-        const assessmentResult =
-            await client.query<RiskAssessment>(
-                `
+        `
                     INSERT INTO risk_assessments (
                         supplier_id,
                         risk_score,
@@ -87,27 +84,26 @@ export async function insertRiskAssessment(
                         created_at AS "createdAt",
                         updated_at AS "updatedAt"
                 `,
-                [
-                    input.supplierId,
-                    input.riskScore,
-                    input.riskLevel,
-                    input.complianceScore,
-                    input.documentStatus,
-                    input.notes,
-                    organizationId,
-                ],
-            )
+        [
+            input.supplierId,
+            input.riskScore,
+            input.riskLevel,
+            input.complianceScore,
+            input.documentStatus,
+            input.notes,
+            organizationId,
+        ],
+    )
 
-        const assessment = assessmentResult.rows[0]
+    const assessment = assessmentResult.rows[0]
 
-        if (!assessment) {
-            await client.query('ROLLBACK')
-            return null
-        }
+    if (!assessment) {
+        return null
+    }
 
-        for (const response of input.responses) {
-            await client.query(
-                `
+    for (const response of input.responses) {
+        await client.query(
+            `
                     INSERT INTO risk_assessment_responses (
                         assessment_id,
                         criterion_key,
@@ -117,34 +113,26 @@ export async function insertRiskAssessment(
                     )
                     VALUES ($1, $2, $3, $4, $5)
                 `,
-                [
-                    assessment.id,
-                    response.criterionKey,
-                    response.score,
-                    response.weight,
-                    response.notes,
-                ],
-            )
-        }
-
-        await client.query('COMMIT')
-
-        return assessment
-    } catch (error) {
-        await client.query('ROLLBACK')
-
-        throw error
-    } finally {
-        client.release()
+            [
+                assessment.id,
+                response.criterionKey,
+                response.score,
+                response.weight,
+                response.notes,
+            ],
+        )
     }
+
+    return assessment
 }
 
 export async function findRiskAssessmentById(
+    client: PoolClient,
     supplierId: string,
     assessmentId: string,
     organizationId: string,
 ): Promise<RiskAssessment | null> {
-    const result = await databasePool.query<RiskAssessment>(
+    const result = await client.query<RiskAssessment>(
         `
             SELECT
                 id,
@@ -168,6 +156,7 @@ export async function findRiskAssessmentById(
                     WHERE supplier.id = risk_assessments.supplier_id
                         AND supplier.organization_id = $3
   )
+                        FOR UPDATE
 
         `,
         [supplierId, assessmentId, organizationId],
@@ -177,10 +166,11 @@ export async function findRiskAssessmentById(
 }
 
 export async function updateRiskAssessmentDecision(
+    client: PoolClient,
     input: UpdateRiskAssessmentDecisionRecord,
     organizationId: string,
 ): Promise<RiskAssessment | null> {
-    const result = await databasePool.query<RiskAssessment>(
+    const result = await client.query<RiskAssessment>(
         `
             UPDATE risk_assessments
             SET
@@ -225,10 +215,11 @@ export async function updateRiskAssessmentDecision(
 }
 
 export async function updateRiskAssessmentDocumentStatus(
+    client: PoolClient,
     input: UpdateRiskAssessmentDocumentStatusRecord,
     organizationId: string,
 ): Promise<RiskAssessment | null> {
-    const result = await databasePool.query<RiskAssessment>(
+    const result = await client.query<RiskAssessment>(
         `
             UPDATE risk_assessments
             SET

@@ -8,6 +8,7 @@ import type {
 
 import {
     getAuthenticatedOrganizationId,
+    getAuthenticatedUser,
 } from '../auth/authSession.js'
 
 import {
@@ -65,13 +66,14 @@ export async function createSupplierRiskAssessment(
 ): Promise<void> {
     try {
 
-        const organizationId = getAuthenticatedOrganizationId(request)
+        const authenticatedUser = getAuthenticatedUser(request)
 
         const assessment =
             await createRiskAssessmentForSupplier(
                 request.params.supplierId,
                 request.body,
-                organizationId
+                authenticatedUser.organizationId,
+                authenticatedUser.id
             )
 
         if (!assessment) {
@@ -103,13 +105,14 @@ export async function finalizeSupplierRiskAssessment(
 ): Promise<void> {
     try {
 
-        const organizationId = getAuthenticatedOrganizationId(request)
+        const authenticatedUser = getAuthenticatedUser(request)
 
         const result = await finalizeRiskAssessment(
             request.params.supplierId,
             request.params.assessmentId,
             request.body,
-            organizationId
+            authenticatedUser.organizationId,
+            authenticatedUser.id
         )
 
         if (result.outcome === 'not-found') {
@@ -166,14 +169,14 @@ export async function changeSupplierRiskAssessmentDocumentStatus(
 ): Promise<void> {
     try {
 
-        const organizationId = getAuthenticatedOrganizationId(request)
+        const authenticatedUser = getAuthenticatedUser(request)
         const assessment =
             await changeRiskAssessmentDocumentStatus(
                 request.params.supplierId,
                 request.params.assessmentId,
                 request.body,
-                organizationId
-
+                authenticatedUser.organizationId,
+                authenticatedUser.id
             )
 
         if (!assessment) {

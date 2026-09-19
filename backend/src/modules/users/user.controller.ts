@@ -34,11 +34,12 @@ export async function createUser(
     next: NextFunction,
 ): Promise<void> {
     try {
-        const organizationId =
-            getAuthenticatedOrganizationId(request)
+        const authenticatedUser =
+            getAuthenticatedUser(request)
 
         const user = await createOrganizationUser(
-            organizationId,
+            authenticatedUser.id,
+            authenticatedUser.organizationId,
             request.body,
         )
 

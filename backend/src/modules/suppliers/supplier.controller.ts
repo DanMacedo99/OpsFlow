@@ -4,11 +4,10 @@ import type {
     Request,
     Response,
 } from 'express'
-
 import {
     getAuthenticatedOrganizationId,
+    getAuthenticatedUser,
 } from '../auth/authSession.js'
-
 import {
     createSupplier as createSupplierService,
     deleteSupplier as deleteSupplierService,
@@ -16,7 +15,6 @@ import {
     listSuppliers,
     updateSupplier as updateSupplierService,
 } from './supplier.service.js'
-
 import type {
     CreateSupplierInput,
     UpdateSupplierInput,
@@ -93,13 +91,14 @@ export async function createSupplier(
     next: NextFunction,
 ): Promise<void> {
     try {
-        const organizationId = getAuthenticatedOrganizationId(request)
+        const authenticatedUser =
+            getAuthenticatedUser(request)
 
         const supplier = await createSupplierService(
             request.body,
-            organizationId,
+            authenticatedUser.organizationId,
+            authenticatedUser.id,
         )
-
 
         response.status(201).json({
             data: supplier,
@@ -120,11 +119,12 @@ export async function updateSupplier(
 ): Promise<void> {
     try {
 
-        const organizationId = getAuthenticatedOrganizationId(request)
+        const authenticatedUser = getAuthenticatedUser(request)
         const supplier = await updateSupplierService(
             request.params.id,
             request.body,
-            organizationId,
+            authenticatedUser.organizationId,
+            authenticatedUser.id,
         )
 
         if (!supplier) {
@@ -153,10 +153,12 @@ export async function deleteSupplier(
 ): Promise<void> {
     try {
 
-        const organizationId = getAuthenticatedOrganizationId(request)
+        const authenticatedUser =
+            getAuthenticatedUser(request)
         const deleted = await deleteSupplierService(
             request.params.id,
-            organizationId
+            authenticatedUser.organizationId,
+            authenticatedUser.id,
         )
 
         if (!deleted) {

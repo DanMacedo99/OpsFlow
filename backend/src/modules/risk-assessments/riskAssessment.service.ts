@@ -21,7 +21,8 @@ import type {
     RiskAssessment,
     RiskHistoryEntry,
 } from './riskAssessment.types.js'
-
+import { runInTransaction } from '../../config/database.js'
+import { insertAuditLog } from '../audit-logs/auditLog.repository.js'
 
 export function listRiskAssessmentsBySupplierId(
     supplierId: string,
@@ -34,6 +35,7 @@ export async function createRiskAssessmentForSupplier(
     supplierId: string,
     input: CreateRiskAssessmentInput,
     organizationId: string,
+    actorUserId: string,
 ): Promise<RiskAssessment | null> {
     const scores = calculateAssessmentScores(
         input.responses,
@@ -59,15 +61,49 @@ export async function createRiskAssessmentForSupplier(
             }
         })
 
-    return insertRiskAssessment({
-        supplierId,
-        riskScore: scores.riskScore,
-        riskLevel: scores.riskLevel,
-        complianceScore: scores.complianceScore,
-        documentStatus: input.documentStatus,
-        notes: input.notes,
-        responses: responsesWithWeights,
-    }, organizationId)
+    return runInTransaction(async (client) => {
+        const assessment =
+            await insertRiskAssessment(
+                client,
+                {
+                    supplierId,
+                    riskScore: scores.riskScore,
+                    riskLevel: scores.riskLevel,
+                    complianceScore:
+                        scores.complianceScore,
+                    documentStatus:
+                        input.documentStatus,
+                    notes: input.notes,
+                    responses: responsesWithWeights,
+                },
+                organizationId,
+            )
+
+        if (!assessment) {
+            return null
+        }
+
+        await insertAuditLog(client, {
+            organizationId,
+            actorUserId,
+            action: 'risk_assessment.created',
+            entityType: 'risk_assessment',
+            entityId: assessment.id,
+            metadata: {
+                supplierId: assessment.supplierId,
+                riskScore: assessment.riskScore,
+                riskLevel: assessment.riskLevel,
+                complianceScore:
+                    assessment.complianceScore,
+                documentStatus:
+                    assessment.documentStatus,
+                responseCount:
+                    responsesWithWeights.length,
+            },
+        })
+
+        return assessment
+    })
 }
 
 export async function finalizeRiskAssessment(
@@ -75,65 +111,98 @@ export async function finalizeRiskAssessment(
     assessmentId: string,
     input: UpdateRiskAssessmentDecisionInput,
     organizationId: string,
+    actorUserId: string,
 ): Promise<FinalizeRiskAssessmentResult> {
-    const assessment = await findRiskAssessmentById(
-        supplierId,
-        assessmentId,
-        organizationId,
-    )
-
-    if (!assessment) {
-        return {
-            outcome: 'not-found',
-        }
-    }
-
-    if (assessment.decision !== 'pending') {
-        return {
-            outcome: 'already-finalized',
-        }
-    }
-
-    if (
-        input.decision === 'approved' &&
-        assessment.documentStatus !== 'verified'
-    ) {
-        return {
-            outcome: 'documents-not-verified',
-        }
-    }
-
-    const currentDate = new Date()
-    const assessmentDate =
-        formatAssessmentDate(currentDate)
-
-    const reviewDate =
-        input.decision === 'approved'
-            ? calculateReviewDate(
-                assessment.riskLevel,
-                currentDate,
+    return runInTransaction<FinalizeRiskAssessmentResult>(
+        async (client) => {
+            const assessment = await findRiskAssessmentById(
+                client,
+                supplierId,
+                assessmentId,
+                organizationId,
             )
-            : null
 
-    const updatedAssessment =
-        await updateRiskAssessmentDecision({
-            assessmentId,
-            supplierId,
-            decision: input.decision,
-            assessmentDate,
-            reviewDate,
-        }, organizationId)
+            if (!assessment) {
+                return {
+                    outcome: 'not-found',
+                }
+            }
 
-    if (!updatedAssessment) {
-        return {
-            outcome: 'already-finalized',
+            if (assessment.decision !== 'pending') {
+                return {
+                    outcome: 'already-finalized',
+                }
+            }
+
+            if (
+                input.decision === 'approved' &&
+                assessment.documentStatus !== 'verified'
+            ) {
+                return {
+                    outcome: 'documents-not-verified',
+                }
+            }
+
+            const currentDate = new Date()
+            const assessmentDate =
+                formatAssessmentDate(currentDate)
+
+            const reviewDate =
+                input.decision === 'approved'
+                    ? calculateReviewDate(
+                        assessment.riskLevel,
+                        currentDate,
+                    )
+                    : null
+
+            const updatedAssessment =
+                await updateRiskAssessmentDecision(
+                    client,
+                    {
+                        assessmentId,
+                        supplierId,
+                        decision: input.decision,
+                        assessmentDate,
+                        reviewDate,
+                    }, organizationId)
+
+            if (!updatedAssessment) {
+                return {
+                    outcome: 'already-finalized',
+                }
+            }
+
+            await insertAuditLog(client, {
+                organizationId,
+                actorUserId,
+                action:
+                    'risk_assessment.decision_updated',
+                entityType: 'risk_assessment',
+                entityId: updatedAssessment.id,
+                metadata: {
+                    supplierId,
+                    previousDecision:
+                        assessment.decision,
+                    newDecision:
+                        updatedAssessment.decision,
+                    riskLevel:
+                        updatedAssessment.riskLevel,
+                    documentStatus:
+                        updatedAssessment.documentStatus,
+                    assessmentDate:
+                        updatedAssessment.assessmentDate,
+                    reviewDate:
+                        updatedAssessment.reviewDate,
+                },
+            })
+
+
+            return {
+                outcome: 'updated',
+                assessment: updatedAssessment,
+            }
         }
-    }
-
-    return {
-        outcome: 'updated',
-        assessment: updatedAssessment,
-    }
+    )
 }
 
 export function changeRiskAssessmentDocumentStatus(
@@ -141,12 +210,66 @@ export function changeRiskAssessmentDocumentStatus(
     assessmentId: string,
     input: UpdateRiskAssessmentDocumentStatusInput,
     organizationId: string,
+    actorUserId: string,
 ): Promise<RiskAssessment | null> {
-    return updateRiskAssessmentDocumentStatus({
-        supplierId,
-        assessmentId,
-        documentStatus: input.documentStatus,
-    }, organizationId)
+    return runInTransaction<RiskAssessment | null>(
+        async (client) => {
+            const currentAssessment =
+                await findRiskAssessmentById(
+                    client,
+                    supplierId,
+                    assessmentId,
+                    organizationId,
+                )
+
+            if (!currentAssessment) {
+                return null
+            }
+
+            if (
+                currentAssessment.documentStatus ===
+                input.documentStatus
+            ) {
+                return currentAssessment
+            }
+
+            const updatedAssessment =
+                await updateRiskAssessmentDocumentStatus(
+                    client,
+                    {
+                        supplierId,
+                        assessmentId,
+                        documentStatus:
+                            input.documentStatus,
+                    },
+                    organizationId,
+                )
+
+            if (!updatedAssessment) {
+                throw new Error(
+                    'Risk assessment disappeared during the document status update.',
+                )
+            }
+
+            await insertAuditLog(client, {
+                organizationId,
+                actorUserId,
+                action:
+                    'risk_assessment.document_status_updated',
+                entityType: 'risk_assessment',
+                entityId: updatedAssessment.id,
+                metadata: {
+                    supplierId,
+                    previousDocumentStatus:
+                        currentAssessment.documentStatus,
+                    newDocumentStatus:
+                        updatedAssessment.documentStatus,
+                },
+            })
+
+            return updatedAssessment
+        },
+    )
 }
 
 export async function listRiskHistoryBySupplierId(

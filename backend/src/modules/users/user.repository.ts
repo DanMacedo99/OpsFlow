@@ -1,5 +1,5 @@
 import { databasePool } from '../../config/database.js'
-
+import type { PoolClient } from 'pg'
 import type {
     AuthUser,
 } from '../auth/auth.types.js'
@@ -10,9 +10,10 @@ import type {
 } from './user.types.js'
 
 export async function insertOrganizationUser(
+    client: PoolClient,
     input: CreateUserRecord,
 ): Promise<AuthUser> {
-    const result = await databasePool.query<AuthUser>(
+    const result = await client.query<AuthUser>(
         `
             INSERT INTO users (
                 organization_id,
@@ -77,9 +78,10 @@ export async function findOrganizationUsers(
 }
 
 export async function updateOrganizationUserRole(
+    client: PoolClient,
     input: UpdateOrganizationUserRoleRecord,
 ): Promise<AuthUser | null> {
-    const result = await databasePool.query<AuthUser>(
+    const result = await client.query<AuthUser>(
         `
             UPDATE users
             SET
@@ -102,6 +104,33 @@ export async function updateOrganizationUserRole(
             input.organizationId,
             input.role,
         ],
+    )
+
+    return result.rows[0] ?? null
+}
+
+export async function findOrganizationUserByIdForUpdate(
+    client: PoolClient,
+    userId: string,
+    organizationId: string,
+): Promise<AuthUser | null> {
+    const result = await client.query<AuthUser>(
+        `
+            SELECT
+                id,
+                organization_id AS "organizationId",
+                name,
+                email,
+                role,
+                is_active AS "isActive",
+                created_at::text AS "createdAt",
+                updated_at::text AS "updatedAt"
+            FROM users
+            WHERE id = $1
+              AND organization_id = $2
+            FOR UPDATE
+        `,
+        [userId, organizationId],
     )
 
     return result.rows[0] ?? null

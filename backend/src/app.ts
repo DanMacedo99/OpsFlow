@@ -7,6 +7,9 @@ import { errorHandler } from './middlewares/errorHandler.js'
 import { requireAuthentication } from './middlewares/requireAuthentication.js'
 import { authRouter } from './modules/auth/auth.routes.js'
 import { userRouter } from './modules/users/user.routes.js'
+import {
+    auditLogRouter,
+} from './modules/audit-logs/auditLog.routes.js'
 
 export const app = express()
 
@@ -27,6 +30,8 @@ app.use(
     requireAuthentication,
     userRouter,
 )
+
+app.use('/audit-logs', auditLogRouter)
 
 app.get('/health', (_request, response) => {
     response.status(200).json({

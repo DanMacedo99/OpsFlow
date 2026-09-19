@@ -3,6 +3,14 @@ import {
     hash,
 } from 'argon2'
 
+import {
+    runInTransaction,
+} from '../../config/database.js'
+
+import {
+    insertAuditLog,
+} from '../audit-logs/auditLog.repository.js'
+
 import { AppError } from '../../errors/AppError.js'
 
 import {
@@ -13,6 +21,7 @@ import {
     findOrganizationUsers,
     insertOrganizationUser,
     updateOrganizationUserRole,
+    findOrganizationUserByIdForUpdate,
 } from './user.repository.js'
 
 
@@ -26,6 +35,7 @@ import type {
 } from './user.schema.js'
 
 export async function createOrganizationUser(
+    authenticatedUserId: string,
     organizationId: string,
     input: CreateUserInput,
 ): Promise<AuthUser> {
@@ -37,13 +47,34 @@ export async function createOrganizationUser(
     )
 
     try {
-        return await insertOrganizationUser({
-            organizationId,
-            name: input.name,
-            email: input.email,
-            passwordHash,
-            role: input.role,
-        })
+        return await runInTransaction(
+            async (client) => {
+                const user =
+                    await insertOrganizationUser(
+                        client,
+                        {
+                            organizationId,
+                            name: input.name,
+                            email: input.email,
+                            passwordHash,
+                            role: input.role,
+                        },
+                    )
+                await insertAuditLog(client, {
+                    organizationId,
+                    actorUserId:
+                        authenticatedUserId,
+                    action: 'user.created',
+                    entityType: 'user',
+                    entityId: user.id,
+                    metadata: {
+                        assignedRole: user.role,
+                    },
+                })
+
+                return user
+            },
+        )
     } catch (error) {
         if (isPostgresUniqueViolation(error)) {
             throw new AppError(
@@ -77,19 +108,56 @@ export async function changeOrganizationUserRole(
         )
     }
 
-    const user = await updateOrganizationUserRole({
-        userId: targetUserId,
-        organizationId,
-        role: input.role,
+    return runInTransaction(async (client) => {
+        const currentUser =
+            await findOrganizationUserByIdForUpdate(
+                client,
+                targetUserId,
+                organizationId,
+            )
+
+        if (!currentUser) {
+            throw new AppError(
+                404,
+                'USER_NOT_FOUND',
+                'User not found.',
+            )
+        }
+
+        if (currentUser.role === input.role) {
+            return currentUser
+        }
+
+        const updatedUser =
+            await updateOrganizationUserRole(
+                client,
+                {
+                    userId: targetUserId,
+                    organizationId,
+                    role: input.role,
+                },
+            )
+
+        if (!updatedUser) {
+            throw new AppError(
+                404,
+                'USER_NOT_FOUND',
+                'User not found.',
+            )
+        }
+
+        await insertAuditLog(client, {
+            organizationId,
+            actorUserId: authenticatedUserId,
+            action: 'user.role_updated',
+            entityType: 'user',
+            entityId: targetUserId,
+            metadata: {
+                previousRole: currentUser.role,
+                newRole: updatedUser.role,
+            },
+        })
+
+        return updatedUser
     })
-
-    if (!user) {
-        throw new AppError(
-            404,
-            'USER_NOT_FOUND',
-            'User not found.',
-        )
-    }
-
-    return user
 }

@@ -7,36 +7,7 @@ Content-Type: application/json
     "password": "SecurePassword123!"
 }
 
-### Login com senha incorreta
-POST http://localhost:3000/auth/login
-Content-Type: application/json
-
-{
-    "email": "danilo@opsflow.test",
-    "password": "WrongPassword123!"
-}
-
-### Login com e-mail inexistente
-POST http://localhost:3000/auth/login
-Content-Type: application/json
-
-{
-    "email": "unknown@opsflow.test",
-    "password": "SecurePassword123!"
-}
-
-### Criar usuário Reviewer
-POST http://localhost:3000/users
-Content-Type: application/json
-
-{
-    "name": "OpsFlow Reviewer",
-    "email": "reviewer@opsflow.test",
-    "password": "SecurePassword123!",
-    "role": "reviewer"
-}
-
-### Login second organization (user role: viewer)
+### Login admin organization 2
 POST http://localhost:3000/auth/login
 Content-Type: application/json
 
@@ -45,13 +16,25 @@ Content-Type: application/json
     "password": "SecurePassword123!"
 }
 
-### Login com risk_manager
+
+### login risk manager
 POST http://localhost:3000/auth/login
 Content-Type: application/json
 
 {
-    "email": "reviewer@opsflow.test",
+    "email": "riskmanager@opsflow.test",
     "password": "SecurePassword123!"
+}
+
+### Criar usuário
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+    "name": "OpsFlow risk manager",
+    "email": "riskmanager@opsflow.test",
+    "password": "SecurePassword123!",
+    "role": "risk_manager"
 }
 
 ### Logout
@@ -72,6 +55,10 @@ Content-Type: application/json
 ### Suppliers
 GET http://localhost:3000/suppliers
 
+
+### Suppliers
+GET http://localhost:3000/users
+
 ### cadastrando fornecedor
 POST http://localhost:3000/suppliers
 Content-Type: application/json
@@ -86,7 +73,7 @@ Content-Type: application/json
     "lastAssessmentDate": null
 }
 
-### Register second organization
+### Register organization
 POST http://localhost:3000/auth/register
 Content-Type: application/json
 
@@ -98,30 +85,24 @@ Content-Type: application/json
 }
 
 
-
-### Try supplier from another organization
-GET http://localhost:3000/suppliers/SUP-001
-
-
-### Try updating supplier from another organization
+### updating supplier
 PUT  http://localhost:3000/suppliers/SUP-001
 Content-Type: application/json
 
 {
-    "name": "Unauthorized Update",
+    "name": "new name",
     "category": "Logistics",
-    "country": "Ireland",
+    "country": "kazakshtan",
     "riskLevel": "high",
     "assessmentStatus": "review-required",
     "complianceScore": 50,
     "lastAssessmentDate": null
 }
 
-### Try deleting supplier from another organization
-DELETE http://localhost:3000/suppliers/SUP-001
+DELETE http://localhost:3000/suppliers/SUP-86332168
 
 
-### Try creating assessment for supplier from another organization
+### creating assessment 
 POST http://localhost:3000/suppliers/SUP-001/assessments
 Content-Type: application/json
 
@@ -131,66 +112,63 @@ Content-Type: application/json
     "responses": [
         {
             "criterionKey": "information-security",
-            "score": 4,
+            "score": 2,
             "notes": "Security controls are documented."
         },
         {
             "criterionKey": "data-protection",
-            "score": 4,
+            "score": 2,
             "notes": "Data protection practices are adequate."
         },
         {
             "criterionKey": "regulatory-compliance",
-            "score": 3,
+            "score": 2,
             "notes": "Some compliance improvements are required."
         },
         {
             "criterionKey": "operational-resilience",
-            "score": 4,
+            "score": 2,
             "notes": "Continuity procedures are available."
         },
         {
             "criterionKey": "financial-stability",
-            "score": 3,
+            "score": 2,
             "notes": "Financial position appears acceptable."
         }
     ]
 }
 
-### List assessments from another organization
+### List assessments
 GET http://localhost:3000/suppliers/SUP-001/assessments
 
 
 
-### Try finalizing assessment from another organization
-PATCH http://localhost:3000/suppliers/SUP-001/assessments/7bff8fa4-5cac-4a10-90bb-3440b704bfc3/decision
+### finalizing assessment 
+PATCH http://localhost:3000/suppliers/SUP-001/assessments/46ac6678-7df9-474a-91a3-9cc28791bbbb/decision
 Content-Type: application/json
 
 {
     "decision": "approved"
 }
 
-### Try changing document status from another organization
-PATCH http://localhost:3000/suppliers/SUP-001/assessments/7bff8fa4-5cac-4a10-90bb-3440b704bfc3/document-status
+### changing document status 
+PATCH http://localhost:3000/suppliers/SUP-001/assessments/d62af13e-9d21-434c-9df0-7a517ea9a694/document-status
 Content-Type: application/json
 
 {
-    "documentStatus": "verified"
+    "documentStatus": "expired"
 }
 
-### Admin permission test
-DELETE http://localhost:3000/suppliers/SUP-NOT-FOUND
+### deleting supplier
+DELETE http://localhost:3000/suppliers/SUP-001
 
 
-### Viewer tentando listar usuários
-GET http://localhost:3000/users
-
-### Alterar reviewer para risk_manager
+### Alterar user role
 PATCH http://localhost:3000/users/6b774916-3b60-4817-af29-ae9b6aa5afe1/role
 Content-Type: application/json
 
 {
-    "role": "risk_manager"
+    "role": "reviewer"
 }
 
 ### Alterar usuário inexistente
@@ -200,3 +178,17 @@ Content-Type: application/json
 {
     "role": "viewer"
 }
+
+### List audit logs
+GET http://localhost:3000/audit-logs
+
+
+#### List audit logs filtered by action
+GET http://localhost:3000/audit-logs?action=supplier.created
+
+
+#### List audit logs filtered by actorUserId
+GET http://localhost:3000/audit-logs?page=2&limit=3
+
+### limit invalido
+GET http://localhost:3000/audit-logs?page=0&limit=101
