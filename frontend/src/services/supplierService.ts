@@ -2,6 +2,8 @@ import type {
     Supplier,
     SupplierFormData,
 } from '../types/supplier'
+import { apiFetch, ApiError } from './apiClient'
+
 
 type SuppliersApiResponse = {
     data: Supplier[]
@@ -12,18 +14,11 @@ type SupplierApiResponse = {
 }
 
 
-const apiUrl = import.meta.env.VITE_API_URL
 
-if (!apiUrl) {
-    throw new Error('VITE_API_URL is not configured.')
-}
-
-
-export async function getSuppliers(): Promise<
-    Supplier[]
-> {
-    const response = await fetch(
-        `${apiUrl}/suppliers`,
+export async function getSuppliers(): Promise<Supplier[]> {
+        
+    const response = await apiFetch(
+        `/suppliers`,
     )
 
     if (!response.ok) {
@@ -41,8 +36,8 @@ export async function getSuppliers(): Promise<
 export async function createSupplier(
     input: SupplierFormData,
 ): Promise<Supplier> {
-    const response = await fetch(
-        `${apiUrl}/suppliers`,
+    const response = await apiFetch(
+        `/suppliers`,
         {
             method: 'POST',
             headers: {
@@ -68,8 +63,8 @@ export async function updateSupplier(
     currentSupplier: Supplier,
     input: SupplierFormData,
 ): Promise<Supplier> {
-    const response = await fetch(
-        `${apiUrl}/suppliers/${encodeURIComponent(
+    const response = await apiFetch(
+        `/suppliers/${encodeURIComponent(
             currentSupplier.id,
         )}`,
         {
@@ -107,18 +102,17 @@ export async function updateSupplier(
 export async function deleteSupplier(
     supplierId: string,
 ): Promise<void> {
-    const response = await fetch(
-        `${apiUrl}/suppliers/${encodeURIComponent(
-            supplierId,
-        )}`,
+    const response = await apiFetch(
+        `/suppliers/${encodeURIComponent(supplierId)}`,
         {
             method: 'DELETE',
         },
     )
 
-    if (!response.ok) {
-        throw new Error(
-            `Could not delete supplier. Status: ${response.status}`,
-        )
-    }
+   if (!response.ok) {
+    throw new ApiError(
+        'Could not delete supplier.',
+        response.status,
+    )
+}
 }

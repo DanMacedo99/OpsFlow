@@ -1,34 +1,63 @@
-import { Route, Routes } from 'react-router-dom'
-import SuppliersPage from './pages/SuppliersPage'
+import {
+  Route,
+  Routes,
+} from 'react-router-dom'
+import PublicRoute from './components/auth/PublicRoute'
+import ProtectedRoute from './components/auth/ProtectedRoute'
+import AppLayout from './components/layout/AppLayout'
+
 import AssessmentsPage from './pages/AssessmentsPage'
+import DashboardPage from './pages/DashboardPage'
+import LoginPage from './pages/LoginPage'
 import ReportsPage from './pages/ReportsPage'
 import SettingsPage from './pages/SettingsPage'
-import Sidebar from './components/layout/Sidebar'
-import DashboardPage from './pages/DashboardPage'
-import './App.css'
+import SuppliersPage from './pages/SuppliersPage'
+import RegisterPage from './pages/RegisterPage'
 
 function App() {
   return (
-    <div className="app-shell">
-      <a className="skip-link" href="#main-content">
-        Skip to main content
-      </a>
-      <Sidebar />
+    <Routes>
+    <Route element={<PublicRoute />}>
+      <Route
+        path="/login"
+        element={<LoginPage />}
+      />
 
-      <main
-        id="main-content"
-        className="main-content"
-        tabIndex={-1}
-      >
-        <Routes>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/suppliers" element={<SuppliersPage />} />
-          <Route path="/assessments" element={<AssessmentsPage />} />
-          <Route path="/reports" element={<ReportsPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-        </Routes>
-      </main>
-    </div>
+      <Route
+        path="/register"
+        element={<RegisterPage />}
+      />
+    </Route>
+
+      <Route element={<ProtectedRoute />}>
+        <Route element={<AppLayout />}>
+          <Route
+            index
+            element={<DashboardPage />}
+          />
+
+          <Route
+            path="suppliers"
+            element={<SuppliersPage />}
+          />
+
+          <Route
+            path="assessments"
+            element={<AssessmentsPage />}
+          />
+
+          <Route
+            path="reports"
+            element={<ReportsPage />}
+          />
+
+          <Route
+            path="settings"
+            element={<SettingsPage />}
+          />
+        </Route>
+      </Route>
+    </Routes>
   )
 }
 

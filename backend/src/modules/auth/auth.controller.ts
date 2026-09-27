@@ -4,6 +4,8 @@ import type {
     Response,
 } from 'express'
 
+import type { AuthUser } from './auth.types.js'
+
 import {
     registerAccount, login as loginService
 } from './auth.service.js'
@@ -138,5 +140,18 @@ function destroySession(
 
             resolve()
         })
+    })
+}
+
+interface AuthResponseLocals {
+    authenticatedUser: AuthUser
+}
+
+export function getCurrentUserController(
+    _request: Request,
+    response: Response<unknown, AuthResponseLocals>,
+): void {
+    response.status(200).json({
+        user: response.locals.authenticatedUser,
     })
 }

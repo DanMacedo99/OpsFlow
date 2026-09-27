@@ -2,25 +2,18 @@ import type {
     RiskHistoryEntry,
 } from '../types/riskAssessment'
 
+import { apiFetch } from './apiClient'
+
 type RiskHistoryApiResponse = {
     data: RiskHistoryEntry[]
 }
 
-const apiUrl = import.meta.env.VITE_API_URL
-
-if (!apiUrl) {
-    throw new Error(
-        'VITE_API_URL is not configured.',
-    )
-}
 
 export async function getSupplierRiskHistory(
     supplierId: string,
 ): Promise<RiskHistoryEntry[]> {
-    const response = await fetch(
-        `${apiUrl}/suppliers/${encodeURIComponent(
-            supplierId,
-        )}/assessments/risk-history`,
+    const response = await apiFetch(
+        `/suppliers/${encodeURIComponent(supplierId)}/assessments/risk-history`,
     )
 
     if (!response.ok) {

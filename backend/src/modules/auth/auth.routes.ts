@@ -1,11 +1,11 @@
 import { Router } from 'express'
-
 import { validateBody } from '../../middlewares/validateBody.js'
-
+import { requireAuthentication } from '../../middlewares/requireAuthentication.js'
 import {
     loginController,
     register,
     logoutController,
+    getCurrentUserController
 } from './auth.controller.js'
 import { registerAccountSchema } from './auth.schema.js'
 
@@ -26,4 +26,10 @@ authRouter.post(
 authRouter.post(
     '/logout',
     logoutController,
+)
+
+authRouter.get(
+    '/me',
+    requireAuthentication,
+    getCurrentUserController,
 )

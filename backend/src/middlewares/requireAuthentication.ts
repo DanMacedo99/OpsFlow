@@ -8,11 +8,12 @@ import {
 export const requireAuthentication: RequestHandler =
     async (
         request,
-        _response,
+        response,
         next,
     ): Promise<void> => {
         try {
             const sessionUser = request.session.user
+
 
             if (!sessionUser) {
                 next(
@@ -29,6 +30,8 @@ export const requireAuthentication: RequestHandler =
                 await getActiveUserForSession(
                     sessionUser.id,
                 )
+
+            response.locals.authenticatedUser = currentUser
 
             if (!currentUser) {
                 request.session.destroy((error) => {

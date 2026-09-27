@@ -21,6 +21,7 @@ import type {
     SupplierSortKey,
 } from '../types/supplier'
 import './DashboardPage.css'
+import { ApiError } from '../services/apiClient'
 
 const riskOrder: Record<RiskLevel, number> = {
     unassessed: 0,
@@ -374,13 +375,26 @@ function DashboardPage() {
             window.requestAnimationFrame(() => {
                 addSupplierButtonRef.current?.focus()
             })
-        } catch {
-            setFeedback({
-                variant: 'error',
-                message:
-                    'We could not delete the supplier. Please try again.',
-            })
-        }
+        } catch (error) {
+    if (
+        error instanceof ApiError &&
+        error.status === 403
+    ) {
+        setFeedback({
+            variant: 'error',
+            message:
+                'You do not have permission to delete suppliers.',
+        })
+
+        return
+    }
+
+    setFeedback({
+        variant: 'error',
+        message:
+            'We could not delete the supplier. Please try again.',
+    })
+}
     }
 
     async function handleAddSupplier(

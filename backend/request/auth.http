@@ -7,6 +7,9 @@ Content-Type: application/json
     "password": "SecurePassword123!"
 }
 
+###
+GET http://localhost:3000/auth/me
+
 ### Login admin organization 2
 POST http://localhost:3000/auth/login
 Content-Type: application/json

@@ -15,6 +15,22 @@ export const errorHandler: ErrorRequestHandler = (
         return
     }
 
+    if (
+        error instanceof SyntaxError &&
+        'type' in error &&
+        error.type === 'entity.parse.failed'
+    ) {
+        response.status(400).json({
+            error: {
+                code: 'INVALID_JSON',
+                message:
+                    'Request body contains invalid JSON.',
+            },
+        })
+
+        return
+    }
+
     if (error instanceof AppError) {
         response.status(error.statusCode).json({
             error: {
