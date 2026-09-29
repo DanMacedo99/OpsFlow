@@ -5,7 +5,7 @@ import {
 import PublicRoute from './components/auth/PublicRoute'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import AppLayout from './components/layout/AppLayout'
-
+import UserManagementPage from './pages/UserManagementPage'
 import AssessmentsPage from './pages/AssessmentsPage'
 import DashboardPage from './pages/DashboardPage'
 import LoginPage from './pages/LoginPage'
@@ -17,17 +17,17 @@ import RegisterPage from './pages/RegisterPage'
 function App() {
   return (
     <Routes>
-    <Route element={<PublicRoute />}>
-      <Route
-        path="/login"
-        element={<LoginPage />}
-      />
+      <Route element={<PublicRoute />}>
+        <Route
+          path="/login"
+          element={<LoginPage />}
+        />
 
-      <Route
-        path="/register"
-        element={<RegisterPage />}
-      />
-    </Route>
+        <Route
+          path="/register"
+          element={<RegisterPage />}
+        />
+      </Route>
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
@@ -44,6 +44,11 @@ function App() {
           <Route
             path="assessments"
             element={<AssessmentsPage />}
+          />
+
+          <Route
+            path="/users"
+            element={<UserManagementPage />}
           />
 
           <Route
