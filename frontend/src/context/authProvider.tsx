@@ -38,8 +38,6 @@ export function AuthProvider({
 
     const restoreSession = useCallback(
         async (): Promise<void> => {
-            setStatus('loading')
-
             try {
                 const currentUser =
                     await getCurrentUser()
@@ -57,6 +55,14 @@ export function AuthProvider({
         },
         [],
     )
+
+    const retry = useCallback(
+    async (): Promise<void> => {
+        setStatus('loading')
+        await restoreSession()
+    },
+    [restoreSession],
+)
 
     useEffect(() => {
     function handleUnauthorized() {
@@ -78,9 +84,35 @@ export function AuthProvider({
     }
 }, [])
 
-    useEffect(() => {
-        void restoreSession()
-    }, [restoreSession])
+ useEffect(() => {
+    let isActive = true
+
+    void getCurrentUser()
+        .then((currentUser) => {
+            if (!isActive) {
+                return
+            }
+
+            setUser(currentUser)
+            setStatus(
+                currentUser
+                    ? 'authenticated'
+                    : 'unauthenticated',
+            )
+        })
+        .catch(() => {
+            if (!isActive) {
+                return
+            }
+
+            setUser(null)
+            setStatus('error')
+        })
+
+    return () => {
+        isActive = false
+    }
+}, [])
 
     const login = useCallback(
         async (input: LoginInput): Promise<void> => {
@@ -109,14 +141,14 @@ export function AuthProvider({
             status,
             login,
             logout,
-            retry: restoreSession,
+            retry,
         }),
         [
             user,
             status,
             login,
             logout,
-            restoreSession,
+            retry
         ],
     )
 

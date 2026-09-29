@@ -1,133 +1,32 @@
-import { useEffect, useState, useRef } from 'react'
-import { createSupplier, deleteSupplier, getSuppliers, updateSupplier } from '../services/supplierService'
+import {
+    useEffect,
+    useState,
+} from 'react'
+
 import MetricCard from '../components/dashboard/MetricCard'
 import PageHeader from '../components/layout/PageHeader'
-import SupplierDetailsPanel from '../components/dashboard/SupplierDetailsPanel'
-import SupplierTable from '../components/dashboard/SupplierTable'
-import SupplierForm from '../components/dashboard/SupplierForm'
-import FeedbackBanner, { type FeedbackVariant, } from '../components/common/FeedbackBanner'
-import SupplierFilters, { type SupplierRiskFilter, } from '../components/dashboard/SupplierFilters'
-import type {
-    RiskHistoryEntry,
-} from '../types/riskAssessment'
-import {
-    getSupplierRiskHistory,
-} from '../services/riskAssessmentService'
-import type {
-    RiskLevel,
-    SortDirection,
-    Supplier,
-    SupplierFormData,
-    SupplierSortKey,
-} from '../types/supplier'
+import { useNavigate } from 'react-router-dom'
+
+import { getSuppliers } from '../services/supplierService'
+
+import type { Supplier } from '../types/supplier'
+
 import './DashboardPage.css'
-import { ApiError } from '../services/apiClient'
-
-const riskOrder: Record<RiskLevel, number> = {
-    unassessed: 0,
-    low: 1,
-    medium: 2,
-    high: 3,
-}
-
-type FeedbackState = {
-    message: string
-    variant: FeedbackVariant
-}
-
-function compareSuppliers(
-    firstSupplier: Supplier,
-    secondSupplier: Supplier,
-    sortKey: SupplierSortKey,
-) {
-    switch (sortKey) {
-        case 'name':
-            return firstSupplier.name.localeCompare(secondSupplier.name)
-
-        case 'riskLevel':
-            return (
-                riskOrder[firstSupplier.riskLevel] -
-                riskOrder[secondSupplier.riskLevel]
-            )
-
-        case 'complianceScore':
-            return (
-                firstSupplier.complianceScore -
-                secondSupplier.complianceScore
-            )
-
-        case 'lastAssessmentDate':
-            return (firstSupplier.lastAssessmentDate ?? '').localeCompare(
-                secondSupplier.lastAssessmentDate ?? '',
-            )
-    }
-}
-
-
 
 function DashboardPage() {
-    const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null)
-    const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false)
-    const [suppliers, setSuppliers] = useState<Supplier[]>([])
-    const [isLoadingSuppliers, setIsLoadingSuppliers] = useState(true)
-    const [supplierLoadError, setSupplierLoadError] = useState<string | null>(null)
-    const [reloadKey, setReloadKey] = useState(0)
-    const [searchTerm, setSearchTerm] = useState('')
-    const [supplierBeingEdited, setSupplierBeingEdited] = useState<Supplier | null>(null)
-    const [riskFilter, setRiskFilter] = useState<SupplierRiskFilter>('all')
-    const [sortKey, setSortKey] = useState<SupplierSortKey>('name')
-    const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
-    const [feedback, setFeedback] = useState<FeedbackState | null>(null)
-    const addSupplierButtonRef = useRef<HTMLButtonElement>(null)
-    const editSupplierButtonRef = useRef<HTMLButtonElement>(null)
-    const [riskHistory, setRiskHistory] = useState<RiskHistoryEntry[]>([])
-    const [isLoadingRiskHistory, setIsLoadingRiskHistory,] = useState(false)
-    const [riskHistoryError, setRiskHistoryError] = useState<string | null>(null)
+    const [suppliers, setSuppliers] =
+        useState<Supplier[]>([])
 
+    const [isLoadingSuppliers, setIsLoadingSuppliers] =
+        useState(true)
 
-    const selectedSupplierId = selectedSupplier?.id
+    const [supplierLoadError, setSupplierLoadError] =
+        useState<string | null>(null)
 
-    useEffect(() => {
-        let isActive = true
+    const [reloadKey, setReloadKey] =
+        useState(0)
 
-        if (!selectedSupplierId) {
-            return
-        }
-        const supplierId = selectedSupplierId
-
-        async function loadRiskHistory() {
-            setIsLoadingRiskHistory(true)
-            setRiskHistoryError(null)
-
-            try {
-                const loadedRiskHistory =
-                    await getSupplierRiskHistory(
-                        supplierId,
-                    )
-
-                if (isActive) {
-                    setRiskHistory(loadedRiskHistory)
-                }
-            } catch {
-                if (isActive) {
-                    setRiskHistory([])
-                    setRiskHistoryError(
-                        'We could not load the risk history.',
-                    )
-                }
-            } finally {
-                if (isActive) {
-                    setIsLoadingRiskHistory(false)
-                }
-            }
-        }
-
-        void loadRiskHistory()
-
-        return () => {
-            isActive = false
-        }
-    }, [selectedSupplierId])
+    const navigate = useNavigate()
 
     useEffect(() => {
         let isActive = true
@@ -137,7 +36,8 @@ function DashboardPage() {
             setSupplierLoadError(null)
 
             try {
-                const loadedSuppliers = await getSuppliers()
+                const loadedSuppliers =
+                    await getSuppliers()
 
                 if (isActive) {
                     setSuppliers(loadedSuppliers)
@@ -145,7 +45,7 @@ function DashboardPage() {
             } catch {
                 if (isActive) {
                     setSupplierLoadError(
-                        'We could not load the suppliers. Please try again.',
+                        'We could not load the dashboard data. Please try again.',
                     )
                 }
             } finally {
@@ -162,31 +62,23 @@ function DashboardPage() {
         }
     }, [reloadKey])
 
+    const highRiskSuppliers =
+        suppliers.filter(
+            (supplier) =>
+                supplier.riskLevel === 'high',
+        ).length
 
+    const pendingAssessments =
+        suppliers.filter(
+            (supplier) =>
+                supplier.assessmentStatus === 'pending',
+        ).length
 
-    useEffect(() => {
-        if (!feedback) {
-            return
-        }
-
-        const timeoutId = window.setTimeout(() => {
-            setFeedback(null)
-        }, 4000)
-
-        return () => window.clearTimeout(timeoutId)
-    }, [feedback])
-
-    const highRiskSuppliers = suppliers.filter(
-        (supplier) => supplier.riskLevel === 'high',
-    ).length
-
-    const pendingAssessments = suppliers.filter(
-        (supplier) => supplier.assessmentStatus === 'pending',
-    ).length
-
-    const assessedSuppliers = suppliers.filter(
-        (supplier) => supplier.lastAssessmentDate !== null,
-    )
+    const assessedSuppliers =
+        suppliers.filter(
+            (supplier) =>
+                supplier.lastAssessmentDate !== null,
+        )
 
     const averageCompliance =
         assessedSuppliers.length === 0
@@ -194,7 +86,8 @@ function DashboardPage() {
             : Math.round(
                 assessedSuppliers.reduce(
                     (total, supplier) =>
-                        total + supplier.complianceScore,
+                        total +
+                        supplier.complianceScore,
                     0,
                 ) / assessedSuppliers.length,
             )
@@ -222,272 +115,21 @@ function DashboardPage() {
         },
     ]
 
-    const normalizedSearch = searchTerm.trim().toLowerCase()
-
-    const filteredSuppliers = suppliers.filter((supplier) => {
-        const searchableValues = [
-            supplier.id,
-            supplier.name,
-            supplier.category,
-            supplier.country,
-        ]
-
-        const matchesSearch = searchableValues.some((value) =>
-            value.toLowerCase().includes(normalizedSearch),
-        )
-
-        const matchesRisk =
-            riskFilter === 'all' ||
-            supplier.riskLevel === riskFilter
-
-        return matchesSearch && matchesRisk
-    })
-
-    const sortedSuppliers = [...filteredSuppliers].sort(
-        (firstSupplier, secondSupplier) => {
-            if (sortKey === 'riskLevel') {
-                const firstIsUnassessed =
-                    firstSupplier.riskLevel === 'unassessed'
-
-                const secondIsUnassessed =
-                    secondSupplier.riskLevel === 'unassessed'
-
-                if (firstIsUnassessed && !secondIsUnassessed) {
-                    return 1
-                }
-
-                if (!firstIsUnassessed && secondIsUnassessed) {
-                    return -1
-                }
-            }
-
-            if (sortKey === 'lastAssessmentDate') {
-                const firstHasNoDate =
-                    firstSupplier.lastAssessmentDate === null
-
-                const secondHasNoDate =
-                    secondSupplier.lastAssessmentDate === null
-
-                if (firstHasNoDate && !secondHasNoDate) {
-                    return 1
-                }
-
-                if (!firstHasNoDate && secondHasNoDate) {
-                    return -1
-                }
-            }
-
-            const comparison = compareSuppliers(
-                firstSupplier,
-                secondSupplier,
-                sortKey,
-            )
-
-            return sortDirection === 'asc'
-                ? comparison
-                : -comparison
-        },
-    )
-
-    function handleSort(selectedSortKey: SupplierSortKey) {
-        if (selectedSortKey === sortKey) {
-            setSortDirection((currentDirection) =>
-                currentDirection === 'asc' ? 'desc' : 'asc',
-            )
-
-            return
-        }
-
-        setSortKey(selectedSortKey)
-
-        setSortDirection(
-            selectedSortKey === 'name' ? 'asc' : 'desc',
-        )
-    }
-
-    async function handleUpdateSupplier(
-        input: SupplierFormData,
-    ) {
-        if (!supplierBeingEdited) {
-            return
-        }
-
-        try {
-            const updatedSupplier = await updateSupplier(
-                supplierBeingEdited,
-                input,
-            )
-
-            setSuppliers((currentSuppliers) =>
-                currentSuppliers.map((supplier) =>
-                    supplier.id === updatedSupplier.id
-                        ? updatedSupplier
-                        : supplier,
-                ),
-            )
-
-            setSelectedSupplier(updatedSupplier)
-            setSupplierBeingEdited(null)
-
-            setFeedback({
-                variant: 'success',
-                message: `${updatedSupplier.name} was updated successfully.`,
-            })
-
-            window.requestAnimationFrame(() => {
-                editSupplierButtonRef.current?.focus()
-            })
-        } catch {
-            setFeedback({
-                variant: 'error',
-                message:
-                    'We could not update the supplier. Please try again.',
-            })
-        }
-    }
-
-    async function handleDeleteSupplier(
-        supplierId: string,
-    ) {
-        const supplierToDelete = suppliers.find(
-            (supplier) => supplier.id === supplierId,
-        )
-
-        try {
-            await deleteSupplier(supplierId)
-
-            setSuppliers((currentSuppliers) =>
-                currentSuppliers.filter(
-                    (supplier) => supplier.id !== supplierId,
-                ),
-            )
-
-            setSelectedSupplier(null)
-            setSupplierBeingEdited(null)
-
-            setFeedback({
-                variant: 'success',
-                message: supplierToDelete
-                    ? `${supplierToDelete.name} was deleted successfully.`
-                    : 'Supplier was deleted successfully.',
-            })
-
-            window.requestAnimationFrame(() => {
-                addSupplierButtonRef.current?.focus()
-            })
-        } catch (error) {
-    if (
-        error instanceof ApiError &&
-        error.status === 403
-    ) {
-        setFeedback({
-            variant: 'error',
-            message:
-                'You do not have permission to delete suppliers.',
-        })
-
-        return
-    }
-
-    setFeedback({
-        variant: 'error',
-        message:
-            'We could not delete the supplier. Please try again.',
-    })
-}
-    }
-
-    async function handleAddSupplier(
-        input: SupplierFormData,
-    ) {
-        try {
-            const newSupplier = await createSupplier(input)
-
-            setSuppliers((currentSuppliers) => [
-                newSupplier,
-                ...currentSuppliers,
-            ])
-
-            setSelectedSupplier(newSupplier)
-            setIsAddSupplierOpen(false)
-
-            setFeedback({
-                variant: 'success',
-                message: `${newSupplier.name} was added successfully.`,
-            })
-
-            window.requestAnimationFrame(() => {
-                addSupplierButtonRef.current?.focus()
-            })
-        } catch {
-            setFeedback({
-                variant: 'error',
-                message: 'We could not add the supplier. Please try again.',
-            })
-        }
-    }
-
-
     return (
         <>
-            <PageHeader
+           <PageHeader
                 eyebrow="Supplier Risk Management"
                 title="Dashboard"
-                actionLabel="Add supplier"
-                actionButtonRef={addSupplierButtonRef}
+                actionLabel="View suppliers"
                 onAction={() => {
-                    setSupplierBeingEdited(null)
-                    setIsAddSupplierOpen(true)
+                    navigate('/suppliers')
                 }}
             />
 
-            {feedback && (
-                <FeedbackBanner
-                    message={feedback.message}
-                    variant={feedback.variant}
-                    onDismiss={() => setFeedback(null)}
-                />
-            )}
-            {isAddSupplierOpen && (
-                <SupplierForm
-                    title="Add supplier"
-                    description="Enter the supplier information to create a new record."
-                    submitLabel="Save supplier"
-                    onSubmit={handleAddSupplier}
-                    onCancel={() => {
-                        setIsAddSupplierOpen(false)
-
-                        window.requestAnimationFrame(() => {
-                            addSupplierButtonRef.current?.focus()
-                        })
-                    }}
-                />
-            )}
-
-            {supplierBeingEdited && (
-                <SupplierForm
-                    key={supplierBeingEdited.id}
-                    title="Edit supplier"
-                    description="Update the supplier information."
-                    submitLabel="Save changes"
-                    initialValues={{
-                        name: supplierBeingEdited.name,
-                        category: supplierBeingEdited.category,
-                        country: supplierBeingEdited.country,
-                    }}
-                    onSubmit={handleUpdateSupplier}
-                    onCancel={() => {
-                        setSupplierBeingEdited(null)
-
-                        window.requestAnimationFrame(() => {
-                            editSupplierButtonRef.current?.focus()
-                        })
-                    }}
-                />
-            )}
-
             {isLoadingSuppliers ? (
-                <p role="status">Loading suppliers...</p>
+                <p role="status">
+                    Loading dashboard...
+                </p>
             ) : supplierLoadError ? (
                 <div role="alert">
                     <p>{supplierLoadError}</p>
@@ -496,7 +138,10 @@ function DashboardPage() {
                         type="button"
                         className="primary-button"
                         onClick={() => {
-                            setReloadKey((currentKey) => currentKey + 1)
+                            setReloadKey(
+                                (currentKey) =>
+                                    currentKey + 1,
+                            )
                         }}
                     >
                         Try again
@@ -504,7 +149,9 @@ function DashboardPage() {
                 </div>
             ) : (
                 <section aria-labelledby="overview-heading">
-                    <h2 id="overview-heading">Risk overview</h2>
+                    <h2 id="overview-heading">
+                        Risk overview
+                    </h2>
 
                     <div className="metrics-grid">
                         {metrics.map((metric) => (
@@ -512,50 +159,12 @@ function DashboardPage() {
                                 key={metric.label}
                                 label={metric.label}
                                 value={metric.value}
-                                description={metric.description}
+                                description={
+                                    metric.description
+                                }
                             />
                         ))}
                     </div>
-
-                    <SupplierFilters
-                        searchTerm={searchTerm}
-                        riskFilter={riskFilter}
-                        onSearchChange={setSearchTerm}
-                        onRiskFilterChange={setRiskFilter}
-                        onClear={() => {
-                            setSearchTerm('')
-                            setRiskFilter('all')
-                        }}
-                    />
-
-                    <SupplierTable
-                        suppliers={sortedSuppliers}
-                        selectedSupplierId={selectedSupplier?.id}
-                        sortKey={sortKey}
-                        sortDirection={sortDirection}
-                        onSort={handleSort}
-                        onSelectSupplier={(supplier) => setSelectedSupplier(supplier)}
-                    />
-
-                    {selectedSupplier && (
-                        <SupplierDetailsPanel
-                            key={selectedSupplier.id}
-                            supplier={selectedSupplier}
-                            riskHistory={riskHistory}
-                            isLoadingRiskHistory={isLoadingRiskHistory}
-                            riskHistoryError={riskHistoryError}
-                            editButtonRef={editSupplierButtonRef}
-                            onClose={() => {
-                                setSelectedSupplier(null)
-                                setSupplierBeingEdited(null)
-                            }}
-                            onEdit={() => {
-                                setIsAddSupplierOpen(false)
-                                setSupplierBeingEdited(selectedSupplier)
-                            }}
-                            onDelete={handleDeleteSupplier}
-                        />
-                    )}
                 </section>
             )}
         </>
