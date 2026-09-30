@@ -5,6 +5,7 @@ import './AssessmentsPage.css'
 import { getSuppliers } from '../services/supplierService'
 
 import type { Supplier } from '../types/supplier'
+import { useAuth } from '../hooks/useAuth'
 
 import RiskAssessmentForm from '../components/assessments/RiskAssessmentForm'
 
@@ -50,6 +51,20 @@ function AssessmentsPage() {
         updatingAssessmentId,
         setUpdatingAssessmentId,
     ] = useState<string | null>(null)
+
+    const { user } = useAuth()
+
+    const canCreateAssessment =
+        user?.role === 'admin' ||
+        user?.role === 'risk_manager'
+
+    const canUpdateDocumentStatus =
+        user?.role === 'admin' ||
+        user?.role === 'risk_manager'
+
+    const canFinalizeAssessment =
+        user?.role === 'admin' ||
+        user?.role === 'reviewer'
 
     useEffect(() => {
         let isActive = true
@@ -122,7 +137,10 @@ function AssessmentsPage() {
         assessmentId: string,
         decision: 'approved' | 'rejected',
     ) {
-        if (!selectedSupplierId) {
+        if (
+            !selectedSupplierId ||
+            !canFinalizeAssessment
+        ) {
             return
         }
 
@@ -166,10 +184,12 @@ function AssessmentsPage() {
         assessmentId: string,
         documentStatus: DocumentStatus,
     ) {
-        if (!selectedSupplierId) {
+        if (
+            !selectedSupplierId ||
+            !canCreateAssessment
+        ) {
             return
         }
-
         setUpdatingAssessmentId(assessmentId)
         setFeedback(null)
 
@@ -322,7 +342,8 @@ function AssessmentsPage() {
                         </select>
                     </div>
 
-                    {selectedSupplierId &&
+                    {canCreateAssessment &&
+                        selectedSupplierId &&
                         !isCreatingAssessment && (
                             <button
                                 type="button"
@@ -356,7 +377,8 @@ function AssessmentsPage() {
                 </p>
             )}
 
-            {selectedSupplierId &&
+            {canCreateAssessment &&
+                selectedSupplierId &&
                 isCreatingAssessment && (
                     <RiskAssessmentForm
                         onSubmit={
@@ -495,76 +517,82 @@ function AssessmentsPage() {
                                             Documents Status
                                         </label>
 
-                                        <select
-                                            id={`document-status-${assessment.id}`}
-                                            value={assessment.documentStatus}
-                                            disabled={
-                                                updatingAssessmentId ===
-                                                assessment.id
-                                            }
-                                            onChange={(event) => {
-                                                void handleDocumentStatusChange(
-                                                    assessment.id,
-                                                    event.target
-                                                        .value as DocumentStatus,
-                                                )
-                                            }}
-                                        >
+                                        {canUpdateDocumentStatus ? (
+                                            <select
+                                                id={`document-status-${assessment.id}`}
+                                                value={assessment.documentStatus}
+                                                disabled={
+                                                    updatingAssessmentId ===
+                                                    assessment.id
+                                                }
+                                                onChange={(event) => {
+                                                    void handleDocumentStatusChange(
+                                                        assessment.id,
+                                                        event.target
+                                                            .value as DocumentStatus,
+                                                    )
+                                                }}
+                                            >
+                                                <option value="missing">
+                                                    Missing
+                                                </option>
 
-                                            <option value="missing">
-                                                Missing
-                                            </option>
+                                                <option value="pending">
+                                                    Pending
+                                                </option>
 
-                                            <option value="pending">
-                                                Pending
-                                            </option>
+                                                <option value="verified">
+                                                    Verified
+                                                </option>
 
-                                            <option value="verified">
-                                                Verified
-                                            </option>
-
-                                            <option value="expired">
-                                                Expired
-                                            </option>
-                                        </select>
+                                                <option value="expired">
+                                                    Expired
+                                                </option>
+                                            </select>
+                                        ) : (
+                                            <strong>
+                                                {assessment.documentStatus}
+                                            </strong>
+                                        )}
                                     </div>
-                                    {assessment.decision === 'pending' && (
-                                        <div className="assessment-decision-actions">
-                                            <button
-                                                type="button"
-                                                className="assessment-approve-button"
-                                                disabled={
-                                                    updatingAssessmentId ===
-                                                    assessment.id
-                                                }
-                                                onClick={() => {
-                                                    void handleAssessmentDecision(
-                                                        assessment.id,
-                                                        'approved',
-                                                    )
-                                                }}
-                                            >
-                                                Approve
-                                            </button>
+                                    {canFinalizeAssessment &&
+                                        assessment.decision === 'pending' && (
+                                            <div className="assessment-decision-actions">
+                                                <button
+                                                    type="button"
+                                                    className="assessment-approve-button"
+                                                    disabled={
+                                                        updatingAssessmentId ===
+                                                        assessment.id
+                                                    }
+                                                    onClick={() => {
+                                                        void handleAssessmentDecision(
+                                                            assessment.id,
+                                                            'approved',
+                                                        )
+                                                    }}
+                                                >
+                                                    Approve
+                                                </button>
 
-                                            <button
-                                                type="button"
-                                                className="assessment-reject-button"
-                                                disabled={
-                                                    updatingAssessmentId ===
-                                                    assessment.id
-                                                }
-                                                onClick={() => {
-                                                    void handleAssessmentDecision(
-                                                        assessment.id,
-                                                        'rejected',
-                                                    )
-                                                }}
-                                            >
-                                                Reject
-                                            </button>
-                                        </div>
-                                    )}
+                                                <button
+                                                    type="button"
+                                                    className="assessment-reject-button"
+                                                    disabled={
+                                                        updatingAssessmentId ===
+                                                        assessment.id
+                                                    }
+                                                    onClick={() => {
+                                                        void handleAssessmentDecision(
+                                                            assessment.id,
+                                                            'rejected',
+                                                        )
+                                                    }}
+                                                >
+                                                    Reject
+                                                </button>
+                                            </div>
+                                        )}
                                 </article>
                             ),
                         )}

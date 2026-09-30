@@ -1,21 +1,74 @@
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
+import type { UserRole } from '../../types/auth'
 
 import { useAuth } from '../../hooks/useAuth'
 
-const navigationItems = [
-    { label: 'Dashboard', path: '/' },
-    { label: 'Suppliers', path: '/suppliers' },
-    { label: 'Assessments', path: '/assessments' },
-    { label: 'Reports', path: '/reports' },
-    { label: 'Settings', path: '/settings' },
+interface NavigationItem {
+    label: string
+    path: string
+    allowedRoles?: UserRole[]
+}
+
+const navigationItems: NavigationItem[] = [
+    {
+        label: 'Dashboard',
+        path: '/',
+    },
+    {
+        label: 'Suppliers',
+        path: '/suppliers',
+    },
+    {
+        label: 'Assessments',
+        path: '/assessments',
+    },
+
+    {
+        label: 'User Management',
+        path: '/users',
+        allowedRoles: ['admin'],
+    },
+    {
+        label: 'Audit Logs',
+        path: '/audit-logs',
+        allowedRoles: ['admin'],
+    },
+
+    {
+        label: 'Reports',
+        path: '/reports',
+    },
+    {
+        label: 'Settings',
+        path: '/settings',
+    },
+
 ]
 
 function Sidebar() {
+
+
+
     const {
         user,
         logout,
     } = useAuth()
+
+    const visibleNavigationItems =
+        navigationItems.filter((item) => {
+            if (!item.allowedRoles) {
+                return true
+            }
+
+            if (!user) {
+                return false
+            }
+
+            return item.allowedRoles.includes(
+                user.role,
+            )
+        })
 
     const [isLoggingOut, setIsLoggingOut] =
         useState(false)
@@ -46,7 +99,7 @@ function Sidebar() {
 
             <nav aria-label="Primary navigation">
                 <ul>
-                    {navigationItems.map((item) => (
+                    {visibleNavigationItems.map((item) => (
                         <li key={item.path}>
                             <NavLink
                                 to={item.path}

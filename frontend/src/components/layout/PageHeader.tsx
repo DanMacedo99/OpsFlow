@@ -6,6 +6,7 @@ type PageHeaderProps = {
     actionLabel: string
     actionButtonRef?: Ref<HTMLButtonElement>
     onAction: () => void
+    showAction?: boolean
 }
 function PageHeader({
     eyebrow,
@@ -13,6 +14,7 @@ function PageHeader({
     actionLabel,
     actionButtonRef,
     onAction,
+    showAction = true,
 }: PageHeaderProps) {
     return (
         <header className="page-header">
@@ -21,14 +23,16 @@ function PageHeader({
                 <h1>{title}</h1>
             </div>
 
-            <button
-                ref={actionButtonRef}
-                type="button"
-                className="primary-button"
-                onClick={onAction}
-            >
-                {actionLabel}
-            </button>
+            {showAction && (
+                <button
+                    ref={actionButtonRef}
+                    type="button"
+                    className="primary-button"
+                    onClick={onAction}
+                >
+                    {actionLabel}
+                </button>
+            )}
         </header>
     )
 }

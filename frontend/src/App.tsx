@@ -14,6 +14,7 @@ import SettingsPage from './pages/SettingsPage'
 import SuppliersPage from './pages/SuppliersPage'
 import RegisterPage from './pages/RegisterPage'
 import AuditLogsPage from './pages/AuditLogsPage'
+import RoleProtectedRoute from './components/auth/RoleProtectedRoute'
 
 function App() {
   return (
@@ -48,16 +49,6 @@ function App() {
           />
 
           <Route
-            path="/users"
-            element={<UserManagementPage />}
-          />
-
-          <Route
-            path="/audit-logs"
-            element={<AuditLogsPage />}
-          />
-
-          <Route
             path="reports"
             element={<ReportsPage />}
           />
@@ -66,7 +57,28 @@ function App() {
             path="settings"
             element={<SettingsPage />}
           />
+
+          <Route
+            element={
+              <RoleProtectedRoute
+                allowedRoles={['admin']}
+              />
+            }
+          >
+            <Route
+              path="users"
+              element={<UserManagementPage />}
+            />
+
+            <Route
+              path="audit-logs"
+              element={<AuditLogsPage />}
+            />
+          </Route>
         </Route>
+
+
+
       </Route>
     </Routes>
   )

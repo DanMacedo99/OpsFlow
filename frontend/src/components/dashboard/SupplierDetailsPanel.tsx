@@ -17,6 +17,8 @@ type SupplierDetailsPanelProps = {
     isLoadingRiskHistory: boolean
     riskHistoryError: string | null
     editButtonRef?: Ref<HTMLButtonElement>
+    canEdit: boolean
+    canDelete: boolean
     onClose: () => void
     onEdit: () => void
     onDelete: (supplierId: string) => void
@@ -32,6 +34,8 @@ function SupplierDetailsPanel({
     isLoadingRiskHistory,
     riskHistoryError,
     editButtonRef,
+    canEdit,
+    canDelete,
     onEdit,
     onClose,
     onDelete,
@@ -61,25 +65,34 @@ function SupplierDetailsPanel({
                 </div>
 
                 <div className="supplier-details-actions">
-                    <button type="button" onClick={onClose}>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                    >
                         Close
                     </button>
 
-                    <button
-                        ref={editButtonRef}
-                        type="button"
-                        onClick={onEdit}
-                    >
-                        Edit supplier
-                    </button>
+                    {canEdit && (
+                        <button
+                            ref={editButtonRef}
+                            type="button"
+                            onClick={onEdit}
+                        >
+                            Edit supplier
+                        </button>
+                    )}
 
-                    <button
-                        ref={deleteButtonRef}
-                        type="button"
-                        onClick={() => setIsConfirmingDelete(true)}
-                    >
-                        Delete supplier
-                    </button>
+                    {canDelete && (
+                        <button
+                            ref={deleteButtonRef}
+                            type="button"
+                            onClick={() => {
+                                setIsConfirmingDelete(true)
+                            }}
+                        >
+                            Delete supplier
+                        </button>
+                    )}
                 </div>
             </header>
 
@@ -120,7 +133,7 @@ function SupplierDetailsPanel({
                 isLoading={isLoadingRiskHistory}
                 error={riskHistoryError}
             />
-            {isConfirmingDelete && (
+           {canDelete && isConfirmingDelete && (
                 <div
                     className="delete-confirmation"
                     role="group"

@@ -7,12 +7,12 @@ import SupplierTable from '../components/dashboard/SupplierTable'
 import SupplierForm from '../components/dashboard/SupplierForm'
 import FeedbackBanner, { type FeedbackVariant, } from '../components/common/FeedbackBanner'
 import SupplierFilters, { type SupplierRiskFilter, } from '../components/dashboard/SupplierFilters'
-import type {
-    RiskHistoryEntry,
-} from '../types/riskAssessment'
-import {
-    getSupplierRiskHistory,
-} from '../services/riskAssessmentService'
+import type { RiskHistoryEntry } from '../types/riskAssessment'
+import { getSupplierRiskHistory } from '../services/riskAssessmentService'
+import './DashboardPage.css'
+import { ApiError } from '../services/apiClient'
+import { useAuth } from '../hooks/useAuth'
+
 import type {
     RiskLevel,
     SortDirection,
@@ -20,8 +20,6 @@ import type {
     SupplierFormData,
     SupplierSortKey,
 } from '../types/supplier'
-import './DashboardPage.css'
-import { ApiError } from '../services/apiClient'
 
 const riskOrder: Record<RiskLevel, number> = {
     unassessed: 0,
@@ -29,6 +27,9 @@ const riskOrder: Record<RiskLevel, number> = {
     medium: 2,
     high: 3,
 }
+
+
+
 
 type FeedbackState = {
     message: string
@@ -83,6 +84,19 @@ function SuppliersPage() {
     const [riskHistory, setRiskHistory] = useState<RiskHistoryEntry[]>([])
     const [isLoadingRiskHistory, setIsLoadingRiskHistory,] = useState(false)
     const [riskHistoryError, setRiskHistoryError] = useState<string | null>(null)
+
+    const { user } = useAuth()
+
+    const canCreateSupplier =
+        user?.role === 'admin' ||
+        user?.role === 'risk_manager'
+
+    const canEditSupplier =
+        user?.role === 'admin' ||
+        user?.role === 'risk_manager'
+
+    const canDeleteSupplier =
+        user?.role === 'admin'
 
 
     const selectedSupplierId = selectedSupplier?.id
@@ -376,25 +390,25 @@ function SuppliersPage() {
                 addSupplierButtonRef.current?.focus()
             })
         } catch (error) {
-    if (
-        error instanceof ApiError &&
-        error.status === 403
-    ) {
-        setFeedback({
-            variant: 'error',
-            message:
-                'You do not have permission to delete suppliers.',
-        })
+            if (
+                error instanceof ApiError &&
+                error.status === 403
+            ) {
+                setFeedback({
+                    variant: 'error',
+                    message:
+                        'You do not have permission to delete suppliers.',
+                })
 
-        return
-    }
+                return
+            }
 
-    setFeedback({
-        variant: 'error',
-        message:
-            'We could not delete the supplier. Please try again.',
-    })
-}
+            setFeedback({
+                variant: 'error',
+                message:
+                    'We could not delete the supplier. Please try again.',
+            })
+        }
     }
 
     async function handleAddSupplier(
@@ -435,6 +449,7 @@ function SuppliersPage() {
                 title="Suppliers"
                 actionLabel="Add supplier"
                 actionButtonRef={addSupplierButtonRef}
+                showAction={canCreateSupplier}
                 onAction={() => {
                     setSupplierBeingEdited(null)
                     setIsAddSupplierOpen(true)
@@ -448,43 +463,45 @@ function SuppliersPage() {
                     onDismiss={() => setFeedback(null)}
                 />
             )}
-            {isAddSupplierOpen && (
-                <SupplierForm
-                    title="Add supplier"
-                    description="Enter the supplier information to create a new record."
-                    submitLabel="Save supplier"
-                    onSubmit={handleAddSupplier}
-                    onCancel={() => {
-                        setIsAddSupplierOpen(false)
+            {canCreateSupplier &&
+                isAddSupplierOpen && (
+                    <SupplierForm
+                        title="Add supplier"
+                        description="Enter the supplier information to create a new record."
+                        submitLabel="Save supplier"
+                        onSubmit={handleAddSupplier}
+                        onCancel={() => {
+                            setIsAddSupplierOpen(false)
 
-                        window.requestAnimationFrame(() => {
-                            addSupplierButtonRef.current?.focus()
-                        })
-                    }}
-                />
-            )}
+                            window.requestAnimationFrame(() => {
+                                addSupplierButtonRef.current?.focus()
+                            })
+                        }}
+                    />
+                )}
 
-            {supplierBeingEdited && (
-                <SupplierForm
-                    key={supplierBeingEdited.id}
-                    title="Edit supplier"
-                    description="Update the supplier information."
-                    submitLabel="Save changes"
-                    initialValues={{
-                        name: supplierBeingEdited.name,
-                        category: supplierBeingEdited.category,
-                        country: supplierBeingEdited.country,
-                    }}
-                    onSubmit={handleUpdateSupplier}
-                    onCancel={() => {
-                        setSupplierBeingEdited(null)
+            {canEditSupplier &&
+                supplierBeingEdited && (
+                    <SupplierForm
+                        key={supplierBeingEdited.id}
+                        title="Edit supplier"
+                        description="Update the supplier information."
+                        submitLabel="Save changes"
+                        initialValues={{
+                            name: supplierBeingEdited.name,
+                            category: supplierBeingEdited.category,
+                            country: supplierBeingEdited.country,
+                        }}
+                        onSubmit={handleUpdateSupplier}
+                        onCancel={() => {
+                            setSupplierBeingEdited(null)
 
-                        window.requestAnimationFrame(() => {
-                            editSupplierButtonRef.current?.focus()
-                        })
-                    }}
-                />
-            )}
+                            window.requestAnimationFrame(() => {
+                                editSupplierButtonRef.current?.focus()
+                            })
+                        }}
+                    />
+                )}
 
             {isLoadingSuppliers ? (
                 <p role="status">Loading suppliers...</p>
@@ -542,16 +559,26 @@ function SuppliersPage() {
                             key={selectedSupplier.id}
                             supplier={selectedSupplier}
                             riskHistory={riskHistory}
-                            isLoadingRiskHistory={isLoadingRiskHistory}
-                            riskHistoryError={riskHistoryError}
-                            editButtonRef={editSupplierButtonRef}
+                            isLoadingRiskHistory={
+                                isLoadingRiskHistory
+                            }
+                            riskHistoryError={
+                                riskHistoryError
+                            }
+                            editButtonRef={
+                                editSupplierButtonRef
+                            }
+                            canEdit={canEditSupplier}
+                            canDelete={canDeleteSupplier}
                             onClose={() => {
                                 setSelectedSupplier(null)
                                 setSupplierBeingEdited(null)
                             }}
                             onEdit={() => {
                                 setIsAddSupplierOpen(false)
-                                setSupplierBeingEdited(selectedSupplier)
+                                setSupplierBeingEdited(
+                                    selectedSupplier,
+                                )
                             }}
                             onDelete={handleDeleteSupplier}
                         />
