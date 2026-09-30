@@ -13,6 +13,7 @@ import ReportsPage from './pages/ReportsPage'
 import SettingsPage from './pages/SettingsPage'
 import SuppliersPage from './pages/SuppliersPage'
 import RegisterPage from './pages/RegisterPage'
+import AuditLogsPage from './pages/AuditLogsPage'
 
 function App() {
   return (
@@ -49,6 +50,11 @@ function App() {
           <Route
             path="/users"
             element={<UserManagementPage />}
+          />
+
+          <Route
+            path="/audit-logs"
+            element={<AuditLogsPage />}
           />
 
           <Route

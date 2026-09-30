@@ -11,6 +11,7 @@ export async function insertAuditLog(
     client: PoolClient,
     input: CreateAuditLogRecord,
 ): Promise<AuditLog> {
+
     const result = await client.query<AuditLog>(
         `
             INSERT INTO audit_logs (
@@ -69,6 +70,10 @@ export async function findAuditLogs(
           AND ($3::varchar IS NULL OR entity_type = $3)
           AND ($4::uuid IS NULL OR actor_user_id = $4)
     `
+    const sortDirection =
+        input.sortOrder === 'asc'
+            ? 'ASC'
+            : 'DESC'
 
     const [auditLogsResult, totalResult] =
         await Promise.all([
@@ -86,8 +91,8 @@ export async function findAuditLogs(
                     FROM audit_logs
                     ${filters}
                     ORDER BY
-                        created_at DESC,
-                        id DESC
+                    created_at ${sortDirection},
+                    id ${sortDirection}
                     LIMIT $5
                     OFFSET $6
                 `,

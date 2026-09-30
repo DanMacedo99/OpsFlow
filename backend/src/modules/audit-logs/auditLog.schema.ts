@@ -28,6 +28,10 @@ export const listAuditLogsQuerySchema = z.object({
     actorUserId: z
         .uuid()
         .optional(),
+
+    sortOrder: z
+        .enum(['asc', 'desc'])
+        .default('desc'),
 })
 
 export type ListAuditLogsQuery = z.infer<

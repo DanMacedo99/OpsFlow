@@ -29,7 +29,7 @@ export async function getAuditLogs(
     try {
         const organizationId =
             getAuthenticatedOrganizationId(request)
-        7
+
         const result = await listAuditLogs(
             organizationId,
             response.locals.validatedQuery,

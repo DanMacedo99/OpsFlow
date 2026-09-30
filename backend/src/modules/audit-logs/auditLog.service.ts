@@ -16,10 +16,13 @@ export async function listAuditLogs(
     const offset =
         (query.page - 1) * query.limit
 
+        
+
     const record: FindAuditLogsRecord = {
         organizationId,
         limit: query.limit,
         offset,
+        sortOrder: query.sortOrder,
     }
 
     if (query.action) {

@@ -21,14 +21,9 @@ export const auditEntityTypes = [
 export type AuditEntityType =
     (typeof auditEntityTypes)[number]
 
-export interface CreateAuditLogRecord {
-    organizationId: string
-    actorUserId: string
-    action: AuditAction
-    entityType: AuditEntityType
-    entityId: string
-    metadata: Record<string, unknown>
-}
+export type AuditSortOrder =
+    | 'asc'
+    | 'desc'
 
 export interface AuditLog {
     id: string
@@ -41,21 +36,6 @@ export interface AuditLog {
     createdAt: string
 }
 
-export interface FindAuditLogsRecord {
-    organizationId: string
-    action?: AuditAction
-    entityType?: AuditEntityType
-    actorUserId?: string
-    limit: number
-    offset: number
-    sortOrder: 'asc' | 'desc'
-}
-
-export interface FindAuditLogsResult {
-    auditLogs: AuditLog[]
-    total: number
-}
-
 export interface AuditLogPagination {
     page: number
     limit: number
@@ -63,7 +43,11 @@ export interface AuditLogPagination {
     totalPages: number
 }
 
-export interface ListAuditLogsResult {
-    auditLogs: AuditLog[]
-    pagination: AuditLogPagination
+export interface AuditLogFilters {
+    page: number
+    limit: number
+    action?: AuditAction
+    entityType?: AuditEntityType
+    actorUserId?: string
+    sortOrder: AuditSortOrder
 }
