@@ -8,6 +8,7 @@ type PageHeaderProps = {
     onAction: () => void
     showAction?: boolean
 }
+
 function PageHeader({
     eyebrow,
     title,
@@ -19,7 +20,10 @@ function PageHeader({
     return (
         <header className="page-header">
             <div>
-                <p className="eyebrow">{eyebrow}</p>
+                <p className="eyebrow">
+                    {eyebrow}
+                </p>
+
                 <h1>{title}</h1>
             </div>
 
