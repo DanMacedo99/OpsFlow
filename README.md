@@ -1,421 +1,290 @@
-OpsFlow
+# OpsFlow
 
 OpsFlow is a modular business operations platform for supplier risk, compliance monitoring, assessments and operational workflows.
 
-Its first module is a multi-tenant Supplier Risk and Compliance Platform. It demonstrates how a typed React interface, a layered REST API and PostgreSQL can support real business processes while keeping each organisation's data isolated.
+Its first module combines a typed React interface, a layered REST API and PostgreSQL with session authentication, role-based permissions and organisation-level data isolation.
 
-Current Features
+## Current Status
 
-Supplier management
+Supplier workflows, risk assessments, authentication, role-based access control, user management and audit logging are implemented. Frontend automated tests are in place; backend automated testing is the next milestone.
 
-Supplier dashboard with dynamic metrics
+OpsFlow is under active development and is not yet production-ready.
 
-Supplier creation, listing, details, editing and deletion
+## Features
 
-Search, filtering and table sorting
+### Suppliers and Assessments
 
-Risk level, assessment status and compliance score tracking
+- Supplier dashboard with dynamic metrics.
+- Supplier creation, listing, details, editing and deletion.
+- Search, risk filtering and table sorting.
+- Loading, error, retry and empty states.
+- Responsive layouts and accessible interaction patterns.
+- Weighted assessment criteria and automatic compliance/risk scoring.
+- Pending, approved and rejected assessment decisions.
+- Compliance document status tracking.
+- Review dates based on risk level and supplier risk history.
+- Transactional assessment creation with criterion responses.
 
-Loading, error, retry and empty states
+### Authentication and Tenant Isolation
 
-Responsive layouts and accessible keyboard navigation
+- Organisation registration with an initial administrator.
+- Login, logout and current-session lookup.
+- Frontend login and registration screens.
+- Argon2id password hashing.
+- PostgreSQL-backed sessions and signed, HttpOnly cookies.
+- Protected frontend routes and authenticated API routes.
+- Organisation context taken from the server-side session.
+- Supplier queries scoped by organisation; assessments scoped through their supplier.
+- Cross-organisation access returns 404 without exposing another tenant's records.
+- Runtime environment/input validation and centralised error responses.
 
-Risk assessments
+### Permissions, Users and Audit Logs
 
-Weighted assessment criteria
+Roles: `admin`, `risk_manager`, `reviewer` and `viewer`.
 
-Automatic risk and compliance score calculation
+| Operation | Allowed Roles |
+| --- | --- |
+| View suppliers, assessments and risk history | All roles |
+| Create/edit suppliers | Admin, risk manager |
+| Delete suppliers | Admin |
+| Create assessments / update document status | Admin, risk manager |
+| Approve/reject assessments | Admin, reviewer |
+| Manage users and roles | Admin |
+| View audit logs | Admin |
 
-Risk levels derived from assessment results
+The frontend adapts navigation and protected routes to the user's role. The API independently enforces permissions.
 
-Pending, approved and rejected decisions
+Administrators can list/create organisation users and update their roles. Audit logs record actors and changes for supplier, assessment and user operations, with an admin-only interface and filtered API access.
 
-Compliance document status tracking
+## Tech Stack
 
-Review-date calculation based on risk level
+| Frontend | Backend |
+| --- | --- |
+| React, TypeScript, Vite | Node.js, Express, TypeScript |
+| React Router, CSS, semantic HTML | PostgreSQL, pg, node-pg-migrate |
+| Vitest, React Testing Library | Zod, Argon2 |
+| jsdom, jest-dom, user-event | express-session, connect-pg-simple |
 
-Supplier risk history
+Engineering practices include parameterised SQL, database migrations, transactions, centralised error handling, environment-based configuration and a layered backend architecture.
 
-Transactional creation of assessments and their responses
+## Architecture
 
-Authentication and security
+Requests pass through route middleware, controllers, services and repositories before reaching PostgreSQL.
 
-Organisation and administrator registration
+- Routes define endpoints and authentication, authorisation and validation middleware.
+- Controllers translate requests and service results into HTTP responses.
+- Services contain business rules, workflow decisions and transactional audit recording.
+- Repositories execute database queries.
+- Schemas validate external input with Zod.
+- Migrations version the database structure.
 
-Password hashing with Argon2id
-
-Login and logout endpoints
-
-Server-side sessions stored in PostgreSQL
-
-Signed, HttpOnly session cookies
-
-Protected supplier and assessment routes
-
-Standardised application errors and safe HTTP responses
-
-Duplicate registration handling with 409 Conflict
-
-Environment validation with Zod
-
-Multi-tenancy
-
-Users belong to an organisation
-
-Suppliers belong to an organisation
-
-The organisation ID is obtained from the authenticated session, never from the request body
-
-Supplier queries are scoped by organisation
-
-Risk assessments are scoped through their parent supplier
-
-Cross-organisation access returns 404 Not Found without exposing another tenant's data
-
-Current Project Status
-
-The frontend dashboard, supplier REST API, PostgreSQL persistence, risk-assessment workflow, session authentication and organisation-level data isolation are implemented.
-
-The following access roles are defined:
-
-admin
-
-risk_manager
-
-reviewer
-
-viewer
-
-The first registered user of an organisation receives the admin role. Role-based permissions for individual operations are the next security milestone.
-
-OpsFlow is under active development and is not yet production-ready. Automated testing, audit logs, actor tracking, CI/CD and deployment configuration remain planned.
-
-Tech Stack
-
-Frontend
-
-React
-
-TypeScript
-
-Vite
-
-React Router
-
-CSS
-
-Semantic HTML5
-
-Backend
-
-Node.js
-
-Express
-
-TypeScript
-
-Zod
-
-PostgreSQL
-
-pg
-
-node-pg-migrate
-
-Argon2
-
-express-session
-
-connect-pg-simple
-
-Engineering practices
-
-Layered backend architecture
-
-Runtime and static type validation
-
-Parameterised SQL queries
-
-Database migrations
-
-PostgreSQL transactions
-
-Centralised error handling
-
-Environment-based configuration
-
-ESLint and production build validation
-
-Git and GitHub
-
-Accessible interaction patterns
-
-Architecture
-
-Backend requests follow this flow:
-
-Route
-  -> validation middleware
-  -> authentication middleware
-  -> controller
-  -> service
-  -> repository
-  -> PostgreSQL
-
-Each layer has a focused responsibility:
-
-Routes define endpoints and middleware order.
-
-Controllers receive HTTP requests and create HTTP responses.
-
-Services contain business rules and workflow decisions.
-
-Repositories execute parameterised PostgreSQL queries.
-
-Schemas validate external input at runtime with Zod.
-
-Migrations version database structure changes.
-
-Middlewares handle authentication, validation and errors.
-
-Project Structure
-
+```text
 opsflow/
-├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── common/
-│   │   │   ├── dashboard/
-│   │   │   └── layout/
-│   │   ├── data/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   ├── types/
-│   │   ├── App.tsx
-│   │   └── main.tsx
-│   ├── package.json
-│   └── vite.config.ts
-├── backend/
-│   ├── migrations/
-│   ├── request/
-│   ├── src/
-│   │   ├── config/
-│   │   ├── errors/
-│   │   ├── middlewares/
-│   │   ├── modules/
-│   │   │   ├── auth/
-│   │   │   ├── suppliers/
-│   │   │   └── risk-assessments/
-│   │   ├── types/
-│   │   ├── app.ts
-│   │   └── server.ts
-│   ├── .env.example
-│   ├── package.json
-│   └── tsconfig.json
-├── .gitignore
-└── README.md
+|-- frontend/
+|   |-- src/
+|   |   |-- components/
+|   |   |-- context/
+|   |   |-- hooks/
+|   |   |-- pages/
+|   |   |-- services/
+|   |   |-- test/
+|   |   |-- types/
+|   |   |-- utils/
+|   |   `-- App.tsx
+|   |-- package.json
+|   `-- vite.config.ts
+|-- backend/
+|   |-- migrations/
+|   |-- src/
+|   |   |-- config/
+|   |   |-- database/
+|   |   |-- errors/
+|   |   |-- middlewares/
+|   |   |-- modules/
+|   |   |   |-- auth/
+|   |   |   |-- users/
+|   |   |   |-- audit-logs/
+|   |   |   |-- suppliers/
+|   |   |   `-- risk-assessments/
+|   |   |-- app.ts
+|   |   `-- server.ts
+|   `-- package.json
+|-- package.json
+`-- README.md
+```
 
-Data Model
+The main data relationships are organisations to users and suppliers, and suppliers to assessments and criterion responses. Sessions hold the authenticated user, organisation and role. Audit logs record operational changes.
 
-The main PostgreSQL relationships are:
+The browser cookie holds the signed session identifier rather than passwords or full user data.
 
-organisations
-  -> users
-  -> suppliers
-       -> risk_assessments
-            -> risk_assessment_responses
+## API Endpoints
 
-sessions
-  -> authenticated user and organisation context
+### Health and Authentication
 
-The session stores the authenticated user's ID, organisation ID and role. The browser cookie stores only the signed session identifier; passwords and full user data are not stored in the cookie or in localStorage.
+```text
+GET   /health
+POST  /auth/register
+POST  /auth/login
+POST  /auth/logout
+GET   /auth/me
+```
 
-API Endpoints
+### Suppliers and Assessments
 
-Health
+These routes require authentication and the permissions listed above.
 
-GET /health
-
-Authentication
-
-POST /auth/register
-POST /auth/login
-POST /auth/logout
-
-Suppliers
-
-These routes require an authenticated session:
-
+```text
 GET    /suppliers
 GET    /suppliers/:id
 POST   /suppliers
 PUT    /suppliers/:id
 DELETE /suppliers/:id
 
-Risk assessments
+GET    /suppliers/:supplierId/assessments
+GET    /suppliers/:supplierId/assessments/risk-history
+POST   /suppliers/:supplierId/assessments
+PATCH  /suppliers/:supplierId/assessments/:assessmentId/decision
+PATCH  /suppliers/:supplierId/assessments/:assessmentId/document-status
+```
 
-GET   /suppliers/:supplierId/assessments
-GET   /suppliers/:supplierId/assessments/risk-history
-POST  /suppliers/:supplierId/assessments
-PATCH /suppliers/:supplierId/assessments/:assessmentId/decision
-PATCH /suppliers/:supplierId/assessments/:assessmentId/document-status
+### Administration
 
-Getting Started
+These routes require an authenticated administrator.
 
-Requirements
+```text
+GET    /users
+POST   /users
+PATCH  /users/:id/role
+GET    /audit-logs
+```
 
-Node.js
+## Getting Started
 
-npm
+Requirements: Node.js and npm compatible with the installed packages, PostgreSQL and Git.
 
-PostgreSQL
+### 1. Clone and Install
 
-Git
-
-1. Clone the repository
-
+```sh
 git clone git@github.com:DanMacedo99/OpsFlow.git
 cd OpsFlow
-
-2. Install dependencies
-
-cd frontend
 npm install
+npm --prefix frontend install
+npm --prefix backend install
+```
 
-cd ../backend
-npm install
+### 2. Configure the Environment
 
-3. Configure the backend environment
+Create `backend/.env` from `backend/.env.example`. Set the PostgreSQL connection values, `DATABASE_URL`, `CORS_ORIGIN` and `SESSION_SECRET`.
 
-Create backend/.env from backend/.env.example and provide your local PostgreSQL connection values.
+Generate a session secret:
 
-Generate a secure session secret:
-
+```sh
 node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
+```
 
-Place the generated value in SESSION_SECRET. Never commit the real .env file.
+Configure `VITE_API_URL=http://localhost:3000` in `frontend/.env`. Keep the frontend origin consistent with the backend's `CORS_ORIGIN`. Do not commit real environment files.
 
-4. Run database migrations
+### 3. Run Migrations
 
-From backend/:
+From `backend/`:
 
+```sh
 npm run migrate:up
+```
 
-5. Start the backend
+### 4. Start the Application
 
-From backend/:
+From the repository root, start both applications:
 
+```sh
 npm run dev
+```
 
-The API runs by default at:
+Alternatively, use `npm run dev:frontend` and `npm run dev:backend` in separate terminals.
 
-http://localhost:3000
+Default addresses:
 
-6. Start the frontend
+- Frontend: http://localhost:5173
+- API: http://localhost:3000
 
-In a second terminal, from frontend/:
+Register an organisation through the frontend to create its initial administrator.
 
-npm run dev
+## Automated Tests
 
-Vite runs by default at:
+Frontend tests use Vitest, React Testing Library, jest-dom, user-event and jsdom.
 
-http://localhost:5173
+Current tests cover:
 
-Validation Commands
+- Session loading, errors, retry and protected-route redirects.
+- Role-based route access and sidebar navigation.
+- Supplier forms, filters, sorting and empty table states.
+- Supplier-page creation, editing, deletion, loading and request retry.
+- Risk-assessment form submission and cancellation.
+- Page-header actions.
 
-Run these commands inside the relevant workspace:
+Supplier-page tests mock service calls; they do not exercise the live API or database.
 
-npm run lint
-npm run build
+From `frontend/`, run tests in watch mode:
 
-lint analyses code quality and ESLint rules.
+```sh
+npm test
+```
 
-build validates TypeScript and creates the production build.
+Run all discovered frontend tests once:
 
-Security Model
+```sh
+npm test -- --run
+```
 
-Authentication and tenant isolation solve different problems:
+Watch mode can rerun tests affected by changed files. The one-off command runs the entire frontend suite together.
 
-Authentication confirms that a session belongs to a logged-in user.
+Backend tests are not configured yet. The first planned unit tests target assessment scoring and review-date calculation, followed by service workflows, API behaviour, permissions and tenant isolation.
 
-Tenant isolation restricts that user to records belonging to their organisation.
+## Validation Commands
 
-Authorisation will determine which operations are allowed for each role.
+Frontend:
 
-Current tenant-sensitive operations use the organisation ID stored in the server-side session. Client-provided organisation IDs are not trusted.
+```sh
+npm --prefix frontend run lint
+npm --prefix frontend run build
+npm --prefix frontend test -- --run
+```
 
-Roadmap
+Backend:
 
-Completed
+```sh
+npm --prefix backend run typecheck
+npm --prefix backend run build
+```
 
-Frontend dashboard and supplier workflows
+## Roadmap
 
-Express REST API
+Implemented:
 
-PostgreSQL persistence and migrations
+- Supplier dashboard and CRUD workflows.
+- PostgreSQL persistence, migrations and transactional operations.
+- Assessment scoring, decisions, document status and review dates.
+- Authentication, session restoration and organisation isolation.
+- API role permissions and role-aware frontend navigation.
+- Administrator user management.
+- Audit logs with actor tracking.
+- Initial frontend automated test suite.
 
-Supplier CRUD
+Next:
 
-Risk-assessment scoring and lifecycle
+- Backend unit tests for business rules and service workflows.
+- API integration tests, authentication/authorisation tests and tenant-isolation tests.
+- Additional frontend workflow coverage.
+- CI/CD with GitHub Actions.
+- Docker, deployment configuration, production logging and monitoring.
 
-Registration, login and logout
+Longer term:
 
-Argon2id password protection
+- Compliance document upload and processing.
+- Real-time updates.
+- Python-based document analysis.
+- AI-assisted risk insights and retrieval-augmented generation.
 
-PostgreSQL-backed sessions
+## Long-Term Vision
 
-Protected routes
-
-Users linked to organisations
-
-Supplier and assessment isolation by organisation
-
-Base access roles
-
-Next
-
-Role-Based Access Control permissions per operation
-
-Audit logs
-
-Record who created, edited, assessed or deleted information
-
-Automated frontend and backend tests
-
-API and business-rule integration tests
-
-Frontend authentication screens and role-aware UI
-
-CI/CD with GitHub Actions
-
-Docker and deployment configuration
-
-Production logging and monitoring
-
-Longer term
-
-Real-time updates with WebSockets
-
-Compliance document upload and processing
-
-Python-based document analysis
-
-AI-assisted risk insights and RAG
-
-Long-Term Vision
-
-OpsFlow is designed as a reusable operational platform that can be adapted to different domains, including:
-
-supplier risk and compliance;
-
-engineering operations;
-
-financial and trading operations;
-
-healthcare workflows;
-
-AI and document processing.
-
-The architecture remains reusable while data models, rules and interfaces evolve for each industry.
-
+OpsFlow is intended to support reusable operational workflows across supplier compliance, engineering operations, financial operations and document processing, with domain-specific data models and business rules.
