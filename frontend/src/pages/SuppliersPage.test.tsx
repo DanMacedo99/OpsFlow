@@ -4,6 +4,8 @@ import {
     within,
 } from '@testing-library/react'
 
+import { axe } from 'vitest-axe'
+
 import userEvent from '@testing-library/user-event'
 
 import {
@@ -586,4 +588,38 @@ test('shows an error and retries loading suppliers', async () => {
     expect(
         mockedGetSuppliers,
     ).toHaveBeenCalledTimes(2)
+})
+
+test('has no accessibility violations', async () => {
+    mockedUseAuth.mockReturnValue({
+        user: {
+            id: 'user-1',
+            organizationId: 'org-1',
+            name: 'Admin User',
+            email: 'admin@example.com',
+            role: 'admin',
+        },
+        status: 'authenticated',
+        login: vi.fn(async () => {}),
+        logout: vi.fn(async () => {}),
+        retry: vi.fn(async () => {}),
+    })
+
+    mockedGetSuppliers.mockResolvedValue(
+        suppliers,
+    )
+
+    const { container } = render(
+        <SuppliersPage />,
+    )
+
+    await screen.findByRole('button', {
+        name: 'Alpha Ltd',
+    })
+
+    const results =
+        await axe(container)
+
+    expect(results.violations)
+        .toHaveLength(0)
 })

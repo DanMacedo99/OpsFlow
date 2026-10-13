@@ -1,4 +1,3 @@
-import { AppError } from '../../errors/AppError.js'
 
 import type {
     NextFunction,

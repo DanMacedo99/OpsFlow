@@ -3,6 +3,8 @@ import {
     screen,
 } from '@testing-library/react'
 
+import { axe } from 'vitest-axe'
+
 import userEvent from '@testing-library/user-event'
 
 import {
@@ -147,4 +149,23 @@ test('renders initial values when editing a supplier', () => {
     expect(
         screen.getByLabelText('Country'),
     ).toHaveValue('Ireland')
+})
+
+test('has no accessibility violations', async () => {
+    const { container } = render(
+        <SupplierForm
+            title="Add supplier"
+            description="Enter supplier information."
+            submitLabel="Save supplier"
+            onSubmit={vi.fn()}
+            onCancel={vi.fn()}
+        />,
+    )
+
+    const results =
+        await axe(container)
+
+
+    expect(results.violations)
+        .toHaveLength(0)
 })
