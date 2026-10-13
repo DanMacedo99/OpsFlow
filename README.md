@@ -6,7 +6,11 @@ Its first module combines a typed React interface, a layered REST API and Postgr
 
 ## Current Status
 
-Supplier workflows, risk assessments, authentication, role-based access control, user management and audit logging are implemented. Frontend automated tests are in place; backend automated testing is the next milestone.
+Supplier workflows, risk assessments, authentication, role-based access control, user management and audit logging are implemented.
+
+Automated testing is in place across the frontend and backend, covering component and workflow behaviour, business rules, services, API behaviour, authentication, authorisation and organisation-level data isolation. ESLint, TypeScript validation and automated accessibility checks are also configured.
+
+The current development milestone focuses on real-time updates using WebSockets.
 
 OpsFlow is under active development and is not yet production-ready.
 
@@ -58,12 +62,15 @@ Administrators can list/create organisation users and update their roles. Audit 
 
 ## Tech Stack
 
-| Frontend | Backend |
+| Frontend | Backend 
 | --- | --- |
 | React, TypeScript, Vite | Node.js, Express, TypeScript |
 | React Router, CSS, semantic HTML | PostgreSQL, pg, node-pg-migrate |
-| Vitest, React Testing Library | Zod, Argon2 |
-| jsdom, jest-dom, user-event | express-session, connect-pg-simple |
+| Vitest, React Testing Library | Vitest, Supertest |
+| jsdom, jest-dom, user-event, axe | Zod, Argon2 |
+| ESLint | express-session, connect-pg-simple |
+
+
 
 Engineering practices include parameterised SQL, database migrations, transactions, centralised error handling, environment-based configuration and a layered backend architecture.
 
@@ -213,33 +220,36 @@ Register an organisation through the frontend to create its initial administrato
 
 Frontend tests use Vitest, React Testing Library, jest-dom, user-event and jsdom.
 
-Current tests cover:
+Current frontend tests cover:
 
 - Session loading, errors, retry and protected-route redirects.
 - Role-based route access and sidebar navigation.
-- Supplier forms, filters, sorting and empty table states.
-- Supplier-page creation, editing, deletion, loading and request retry.
-- Risk-assessment form submission and cancellation.
+- Supplier forms, filters, searching, sorting and table behaviour.
+- Supplier creation, editing and deletion workflows.
+- Loading, error and retry states.
+- Risk-assessment form behaviour.
 - Page-header actions.
+- Automated accessibility checks using axe on representative forms and pages.
 
-Supplier-page tests mock service calls; they do not exercise the live API or database.
+Backend tests use Vitest and Supertest.
 
-From `frontend/`, run tests in watch mode:
+Current backend tests cover:
 
-```sh
-npm test
-```
+- Risk and compliance score calculations.
+- Risk-level boundaries and validation rules.
+- Review-date business rules.
+- Risk-assessment service workflows.
+- API responses and validation behaviour.
+- Authentication and role-based authorisation middleware.
+- Organisation-scoped repository queries for tenant isolation.
 
-Run all discovered frontend tests once:
+The test suite focuses on important business rules and workflows rather than artificial coverage targets.
+
+From either application directory, run:
 
 ```sh
 npm test -- --run
 ```
-
-Watch mode can rerun tests affected by changed files. The one-off command runs the entire frontend suite together.
-
-Backend tests are not configured yet. The first planned unit tests target assessment scoring and review-date calculation, followed by service workflows, API behaviour, permissions and tenant isolation.
-
 ## Validation Commands
 
 Frontend:
@@ -253,11 +263,15 @@ npm --prefix frontend test -- --run
 Backend:
 
 ```sh
+npm --prefix backend run lint
 npm --prefix backend run typecheck
 npm --prefix backend run build
+npm --prefix backend test -- --run
 ```
 
 ## Roadmap
+
+
 
 Implemented:
 
@@ -268,20 +282,35 @@ Implemented:
 - API role permissions and role-aware frontend navigation.
 - Administrator user management.
 - Audit logs with actor tracking.
-- Initial frontend automated test suite.
+- Frontend automated component and workflow tests.
+- Backend business-rule, service, API, authentication and tenant-isolation tests.
+- ESLint and TypeScript validation across frontend and backend.
+- Automated accessibility testing.
+- Manual keyboard and screen-reader accessibility review.
+
+Current:
+
+- WebSocket configuration and real-time client connections.
+- Real-time supplier table updates.
+- Automatic assessment updates.
+- Dashboard risk updates.
+- Internal notifications.
+- Reconnection handling and duplicate-event prevention.
 
 Next:
 
-- Backend unit tests for business rules and service workflows.
-- API integration tests, authentication/authorisation tests and tenant-isolation tests.
-- Additional frontend workflow coverage.
+- Python-based document processing.
+- Compliance document upload and extraction.
+- AI-assisted document analysis and risk insights.
+- RAG with source references.
+- Docker and Docker Compose.
 - CI/CD with GitHub Actions.
-- Docker, deployment configuration, production logging and monitoring.
+- Deployment, logging, monitoring and production readiness.
 
 Longer term:
 
 - Compliance document upload and processing.
-- Real-time updates.
+
 - Python-based document analysis.
 - AI-assisted risk insights and retrieval-augmented generation.
 
