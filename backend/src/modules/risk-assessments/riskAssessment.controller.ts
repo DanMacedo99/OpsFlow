@@ -6,6 +6,10 @@ import type {
 } from 'express'
 
 import {
+    getSupplierById,
+} from '../suppliers/supplier.service.js'
+
+import {
     getAuthenticatedOrganizationId,
     getAuthenticatedUser,
 } from '../auth/authSession.js'
@@ -23,6 +27,10 @@ import type {
     UpdateRiskAssessmentDecisionInput,
     UpdateRiskAssessmentDocumentStatusInput,
 } from './riskAssessment.schema.js'
+
+import {
+    getSocketServer,
+} from '../../realtime/socket.js'
 
 type SupplierParams = {
     supplierId: string
@@ -83,6 +91,29 @@ export async function createSupplierRiskAssessment(
                 },
             })
             return
+        }
+
+        const io = getSocketServer()
+
+        io.to(
+            authenticatedUser.organizationId,
+        ).emit(
+            'assessment:created',
+            assessment,
+        )
+
+        const supplier = await getSupplierById(
+            assessment.supplierId,
+            authenticatedUser.organizationId,
+        )
+
+        if (supplier) {
+            io.to(
+                authenticatedUser.organizationId,
+            ).emit(
+                'supplier:updated',
+                supplier,
+            )
         }
 
         response.status(201).json({
@@ -149,6 +180,29 @@ export async function finalizeSupplierRiskAssessment(
             return
         }
 
+        const io = getSocketServer()
+
+        io.to(
+            authenticatedUser.organizationId,
+        ).emit(
+            'assessment:updated',
+            result.assessment,
+        )
+
+        const supplier = await getSupplierById(
+            result.assessment.supplierId,
+            authenticatedUser.organizationId,
+        )
+
+        if (supplier) {
+            io.to(
+                authenticatedUser.organizationId,
+            ).emit(
+                'supplier:updated',
+                supplier,
+            )
+        }
+
         response.status(200).json({
             data: result.assessment,
         })
@@ -188,6 +242,29 @@ export async function changeSupplierRiskAssessmentDocumentStatus(
             return
         }
 
+        const io = getSocketServer()
+
+        io.to(
+            authenticatedUser.organizationId,
+        ).emit(
+            'assessment:updated',
+            assessment,
+        )
+
+        const supplier = await getSupplierById(
+            assessment.supplierId,
+            authenticatedUser.organizationId,
+        )
+
+        if (supplier) {
+            io.to(
+                authenticatedUser.organizationId,
+            ).emit(
+                'supplier:updated',
+                supplier,
+            )
+        }
+
         response.status(200).json({
             data: assessment,
         })
@@ -209,6 +286,8 @@ export async function getSupplierRiskHistory(
                 request.params.supplierId,
                 organizationId
             )
+
+
 
         response.status(200).json({
             data: history,

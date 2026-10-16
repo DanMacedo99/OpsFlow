@@ -12,7 +12,7 @@ import { getSupplierRiskHistory } from '../services/riskAssessmentService'
 import './DashboardPage.css'
 import { ApiError } from '../services/apiClient'
 import { useAuth } from '../hooks/useAuth'
-
+import { socket } from '../realtime/socket'
 import type {
     RiskLevel,
     SortDirection,
@@ -27,9 +27,6 @@ const riskOrder: Record<RiskLevel, number> = {
     medium: 2,
     high: 3,
 }
-
-
-
 
 type FeedbackState = {
     message: string
@@ -100,6 +97,104 @@ function SuppliersPage() {
 
 
     const selectedSupplierId = selectedSupplier?.id
+
+    useEffect(() => {
+        function handleSupplierCreated(
+            supplier: Supplier,
+        ) {
+            setSuppliers((currentSuppliers) => {
+                const alreadyExists =
+                    currentSuppliers.some(
+                        (currentSupplier) =>
+                            currentSupplier.id === supplier.id,
+                    )
+
+                if (alreadyExists) {
+                    return currentSuppliers
+                }
+
+                return [
+                    supplier,
+                    ...currentSuppliers,
+                ]
+            })
+        }
+        function handleSupplierUpdated(
+            updatedSupplier: Supplier,
+        ) {
+            setSuppliers((currentSuppliers) =>
+                currentSuppliers.map((supplier) =>
+                    supplier.id === updatedSupplier.id
+                        ? updatedSupplier
+                        : supplier,
+                ),
+            )
+        }
+
+        function handleSupplierDeleted(
+            supplierId: string,
+        ) {
+            setSuppliers((currentSuppliers) =>
+                currentSuppliers.filter(
+                    (supplier) =>
+                        supplier.id !== supplierId,
+                ),
+            )
+        }
+
+        socket.on(
+            'supplier:updated',
+            handleSupplierUpdated,
+        )
+
+        socket.on(
+            'supplier:deleted',
+            handleSupplierDeleted,
+        )
+
+        socket.on(
+            'supplier:created',
+            handleSupplierCreated,
+        )
+
+        return () => {
+            socket.off(
+                'supplier:created',
+                handleSupplierCreated,
+            )
+
+            socket.off(
+                'supplier:updated',
+                handleSupplierUpdated,
+            )
+
+            socket.off(
+                'supplier:deleted',
+                handleSupplierDeleted,
+            )
+        }
+    }, [])
+
+    useEffect(() => {
+        function handleReconnect() {
+            setReloadKey(
+                (currentKey) =>
+                    currentKey + 1,
+            )
+        }
+
+        socket.io.on(
+            'reconnect',
+            handleReconnect,
+        )
+
+        return () => {
+            socket.io.off(
+                'reconnect',
+                handleReconnect,
+            )
+        }
+    }, [])
 
     useEffect(() => {
         let isActive = true
@@ -417,11 +512,22 @@ function SuppliersPage() {
         try {
             const newSupplier = await createSupplier(input)
 
-            setSuppliers((currentSuppliers) => [
-                newSupplier,
-                ...currentSuppliers,
-            ])
+            setSuppliers((currentSuppliers) => {
+                const alreadyExists =
+                    currentSuppliers.some(
+                        (supplier) =>
+                            supplier.id === newSupplier.id,
+                    )
 
+                if (alreadyExists) {
+                    return currentSuppliers
+                }
+
+                return [
+                    newSupplier,
+                    ...currentSuppliers,
+                ]
+            })
             setSelectedSupplier(newSupplier)
             setIsAddSupplierOpen(false)
 

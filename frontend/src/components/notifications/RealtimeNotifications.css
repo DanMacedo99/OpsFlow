@@ -1,0 +1,27 @@
+.realtime-notification {
+    position: fixed;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+
+    width: min(
+        calc(100% - 2rem),
+        32rem
+    );
+
+    padding: 0.875rem 1rem;
+
+    background: #a8c9f7;
+    color: #1c3eaf;
+
+    border-radius: 0.5rem;
+
+    box-shadow:
+        0 10px 25px
+        rgba(0, 0, 0, 0.2);
+
+    text-align: center;
+
+    pointer-events: none;
+}

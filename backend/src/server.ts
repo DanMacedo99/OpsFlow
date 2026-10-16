@@ -1,6 +1,17 @@
 import { env } from './config/env.js'
 import { app } from './app.js'
 import { databasePool } from './config/database.js'
+import {
+    createServer,
+} from 'node:http'
+import {
+    initializeSocketServer,
+} from './realtime/socket.js'
+
+const httpServer =
+    createServer(app)
+
+    initializeSocketServer(httpServer)
 
 async function startServer(): Promise<void> {
     try {
@@ -8,11 +19,15 @@ async function startServer(): Promise<void> {
 
         console.log('Connected to PostgreSQL.')
 
-        app.listen(env.PORT, () => {
-            console.log(
-                `OpsFlow API running at http://localhost:${env.PORT}`,
-            )
-        })
+      httpServer.listen(
+            env.PORT,
+            () => {
+                console.log(
+                    `OpsFlow API running at http://localhost:${env.PORT}`,
+                )
+            },
+        )
+        
     } catch (error) {
         console.error(
             'Could not connect to PostgreSQL:',

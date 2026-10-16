@@ -3,6 +3,8 @@ import {
     useState,
 } from 'react'
 
+import { socket } from '../realtime/socket'
+
 import MetricCard from '../components/dashboard/MetricCard'
 import PageHeader from '../components/layout/PageHeader'
 import { useNavigate } from 'react-router-dom'
@@ -62,6 +64,55 @@ function DashboardPage() {
         }
     }, [reloadKey])
 
+    useEffect(() => {
+        function handleSupplierUpdated(
+            updatedSupplier: Supplier,
+        ) {
+            setSuppliers((currentSuppliers) =>
+                currentSuppliers.map(
+                    (supplier) =>
+                        supplier.id ===
+                            updatedSupplier.id
+                            ? updatedSupplier
+                            : supplier,
+                ),
+            )
+        }
+
+        socket.on(
+            'supplier:updated',
+            handleSupplierUpdated,
+        )
+
+        return () => {
+            socket.off(
+                'supplier:updated',
+                handleSupplierUpdated,
+            )
+        }
+    }, [])
+
+    useEffect(() => {
+        function handleReconnect() {
+            setReloadKey(
+                (currentKey) =>
+                    currentKey + 1,
+            )
+        }
+
+        socket.io.on(
+            'reconnect',
+            handleReconnect,
+        )
+
+        return () => {
+            socket.io.off(
+                'reconnect',
+                handleReconnect,
+            )
+        }
+    }, [])
+
     const highRiskSuppliers =
         suppliers.filter(
             (supplier) =>
@@ -117,7 +168,7 @@ function DashboardPage() {
 
     return (
         <>
-           <PageHeader
+            <PageHeader
                 eyebrow="Supplier Risk Management"
                 title="Dashboard"
                 actionLabel="View suppliers"

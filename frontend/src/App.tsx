@@ -1,7 +1,5 @@
-import {
-  Route,
-  Routes,
-} from 'react-router-dom'
+import { useRealtimeConnection } from './hooks/useRealtimeConnection'
+import { Route, Routes } from 'react-router-dom'
 import PublicRoute from './components/auth/PublicRoute'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import AppLayout from './components/layout/AppLayout'
@@ -15,72 +13,79 @@ import SuppliersPage from './pages/SuppliersPage'
 import RegisterPage from './pages/RegisterPage'
 import AuditLogsPage from './pages/AuditLogsPage'
 import RoleProtectedRoute from './components/auth/RoleProtectedRoute'
+import RealtimeNotifications from './components/notifications/RealtimeNotifications'
 
 function App() {
+  useRealtimeConnection()
+
+
   return (
-    <Routes>
-      <Route element={<PublicRoute />}>
-        <Route
-          path="/login"
-          element={<LoginPage />}
-        />
-
-        <Route
-          path="/register"
-          element={<RegisterPage />}
-        />
-      </Route>
-
-      <Route element={<ProtectedRoute />}>
-        <Route element={<AppLayout />}>
+    <>
+      <RealtimeNotifications />
+      <Routes>
+        <Route element={<PublicRoute />}>
           <Route
-            index
-            element={<DashboardPage />}
+            path="/login"
+            element={<LoginPage />}
           />
 
           <Route
-            path="suppliers"
-            element={<SuppliersPage />}
+            path="/register"
+            element={<RegisterPage />}
           />
-
-          <Route
-            path="assessments"
-            element={<AssessmentsPage />}
-          />
-
-          <Route
-            path="reports"
-            element={<ReportsPage />}
-          />
-
-          <Route
-            path="settings"
-            element={<SettingsPage />}
-          />
-
-          <Route
-            element={
-              <RoleProtectedRoute
-                allowedRoles={['admin']}
-              />
-            }
-          >
-            <Route
-              path="users"
-              element={<UserManagementPage />}
-            />
-
-            <Route
-              path="audit-logs"
-              element={<AuditLogsPage />}
-            />
-          </Route>
         </Route>
 
+        <Route element={<ProtectedRoute />}>
+          <Route element={<AppLayout />}>
+            <Route
+              index
+              element={<DashboardPage />}
+            />
+
+            <Route
+              path="suppliers"
+              element={<SuppliersPage />}
+            />
+
+            <Route
+              path="assessments"
+              element={<AssessmentsPage />}
+            />
+
+            <Route
+              path="reports"
+              element={<ReportsPage />}
+            />
+
+            <Route
+              path="settings"
+              element={<SettingsPage />}
+            />
+
+            <Route
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={['admin']}
+                />
+              }
+            >
+              <Route
+                path="users"
+                element={<UserManagementPage />}
+              />
+
+              <Route
+                path="audit-logs"
+                element={<AuditLogsPage />}
+              />
+            </Route>
+          </Route>
 
 
-      </Route>
-    </Routes>
+
+        </Route>
+      </Routes>
+    </>
   )
 }
 

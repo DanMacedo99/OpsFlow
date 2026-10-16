@@ -20,6 +20,10 @@ import type {
     UpdateSupplierInput,
 } from './supplier.schema.js'
 
+import {
+    getSocketServer,
+} from '../../realtime/socket.js'
+
 export async function getSuppliers(
     request: Request,
     response: Response,
@@ -100,6 +104,15 @@ export async function createSupplier(
             authenticatedUser.id,
         )
 
+        const io = getSocketServer()
+
+        io.to(
+            authenticatedUser.organizationId,
+        ).emit(
+            'supplier:created',
+            supplier,
+        )
+
         response.status(201).json({
             data: supplier,
         })
@@ -138,6 +151,15 @@ export async function updateSupplier(
             return
         }
 
+        const io = getSocketServer()
+
+        io.to(
+            authenticatedUser.organizationId,
+        ).emit(
+            'supplier:updated',
+            supplier,
+        )
+
         response.status(200).json({
             data: supplier,
         })
@@ -161,6 +183,7 @@ export async function deleteSupplier(
             authenticatedUser.id,
         )
 
+
         if (!deleted) {
             response.status(404).json({
                 error: {
@@ -171,6 +194,14 @@ export async function deleteSupplier(
 
             return
         }
+        const io = getSocketServer()
+
+        io.to(
+            authenticatedUser.organizationId,
+        ).emit(
+            'supplier:deleted',
+            request.params.id,
+        )
 
         response.status(204).send()
     } catch (error) {

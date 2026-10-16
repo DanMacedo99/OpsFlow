@@ -10,6 +10,10 @@ import { useAuth } from '../hooks/useAuth'
 import RiskAssessmentForm from '../components/assessments/RiskAssessmentForm'
 
 import {
+    socket,
+} from '../realtime/socket'
+
+import {
     createSupplierRiskAssessment,
     getSupplierRiskAssessments,
     updateRiskAssessmentDocumentStatus,
@@ -133,6 +137,134 @@ function AssessmentsPage() {
         }
     }, [selectedSupplierId])
 
+useEffect(() => {
+    function handleReconnect() {
+        void resyncAfterReconnect()
+    }
+
+    async function resyncAfterReconnect() {
+        try {
+            const loadedSuppliers =
+                await getSuppliers()
+
+            setSuppliers(loadedSuppliers)
+
+            if (!selectedSupplierId) {
+                return
+            }
+
+            const supplierStillExists =
+                loadedSuppliers.some(
+                    (supplier) =>
+                        supplier.id ===
+                        selectedSupplierId,
+                )
+
+            if (!supplierStillExists) {
+                setSelectedSupplierId('')
+                setAssessments([])
+                return
+            }
+
+            const loadedAssessments =
+                await getSupplierRiskAssessments(
+                    selectedSupplierId,
+                )
+
+            setAssessments(loadedAssessments)
+        } catch {
+            setError(
+                'We could not resynchronise the assessment data.',
+            )
+        }
+    }
+
+    socket.io.on(
+        'reconnect',
+        handleReconnect,
+    )
+
+    return () => {
+        socket.io.off(
+            'reconnect',
+            handleReconnect,
+        )
+    }
+}, [selectedSupplierId])
+
+    useEffect(() => {
+        function handleAssessmentCreated(
+            assessment: RiskAssessment,
+        ) {
+            if (
+                assessment.supplierId !==
+                selectedSupplierId
+            ) {
+                return
+            }
+
+            setAssessments((currentAssessments) => {
+                const alreadyExists =
+                    currentAssessments.some(
+                        (currentAssessment) =>
+                            currentAssessment.id ===
+                            assessment.id,
+                    )
+
+                if (alreadyExists) {
+                    return currentAssessments
+                }
+
+                return [
+                    assessment,
+                    ...currentAssessments,
+                ]
+            })
+        }
+
+        function handleAssessmentUpdated(
+            updatedAssessment: RiskAssessment,
+        ) {
+            if (
+                updatedAssessment.supplierId !==
+                selectedSupplierId
+            ) {
+                return
+            }
+
+            setAssessments((currentAssessments) =>
+                currentAssessments.map(
+                    (assessment) =>
+                        assessment.id ===
+                            updatedAssessment.id
+                            ? updatedAssessment
+                            : assessment,
+                ),
+            )
+        }
+
+        socket.on(
+            'assessment:updated',
+            handleAssessmentUpdated,
+        )
+
+        socket.on(
+            'assessment:created',
+            handleAssessmentCreated,
+        )
+
+        return () => {
+            socket.off(
+                'assessment:created',
+                handleAssessmentCreated,
+            )
+            socket.off(
+                'assessment:updated',
+                handleAssessmentUpdated,
+            )
+        }
+    }, [selectedSupplierId])
+
     async function handleAssessmentDecision(
         assessmentId: string,
         decision: 'approved' | 'rejected',
@@ -240,12 +372,23 @@ function AssessmentsPage() {
                     input,
                 )
 
-            setAssessments(
-                (currentAssessments) => [
+            setAssessments((currentAssessments) => {
+                const alreadyExists =
+                    currentAssessments.some(
+                        (assessment) =>
+                            assessment.id ===
+                            newAssessment.id,
+                    )
+
+                if (alreadyExists) {
+                    return currentAssessments
+                }
+
+                return [
                     newAssessment,
                     ...currentAssessments,
-                ],
-            )
+                ]
+            })
 
             setIsCreatingAssessment(false)
 
