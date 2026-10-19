@@ -2,6 +2,8 @@ import type {
     ErrorRequestHandler,
 } from 'express'
 
+import multer from 'multer'
+
 import { AppError } from '../errors/AppError.js'
 
 export const errorHandler: ErrorRequestHandler = (
@@ -12,6 +14,28 @@ export const errorHandler: ErrorRequestHandler = (
 ): void => {
     if (response.headersSent) {
         next(error)
+        return
+    }
+
+    if (error instanceof multer.MulterError) {
+        if (error.code === 'LIMIT_FILE_SIZE') {
+            response.status(413).json({
+                error: {
+                    code: 'FILE_TOO_LARGE',
+                    message: 'PDF must be 5 MB or smaller.',
+                },
+            })
+
+            return
+        }
+
+        response.status(400).json({
+            error: {
+                code: 'INVALID_UPLOAD',
+                message: 'Invalid file upload.',
+            },
+        })
+
         return
     }
 

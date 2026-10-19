@@ -16,6 +16,14 @@ import {
     updateSupplierSchema,
 } from './supplier.schema.js'
 
+import {
+    uploadDocument,
+} from '../documents/document.upload.js'
+
+import {
+    uploadSupplierDocument,
+} from '../documents/document.controller.js'
+
 export const supplierRouter = Router()
 
 supplierRouter.get(
@@ -37,6 +45,16 @@ supplierRouter.post(
     ),
     validateBody(createSupplierSchema),
     createSupplier,
+)
+
+supplierRouter.post(
+    '/:supplierId/documents',
+    requireRole(
+        'admin',
+        'risk_manager',
+    ),
+    uploadDocument.single('document'),
+    uploadSupplierDocument,
 )
 
 supplierRouter.use(

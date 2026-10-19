@@ -1,0 +1,104 @@
+
+.document-upload {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.875rem;
+    padding: 1rem;
+    border: 1px solid #dce2e8;
+    border-radius: 8px;
+    background-color: #f8fafc;
+}
+
+.document-upload label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.document-upload input[type="file"] {
+    width: 100%;
+    max-width: 100%;
+    padding: 0.625rem;
+    border: 1px dashed #cbd5e1;
+    border-radius: 6px;
+    background-color: #ffffff;
+    color: #475569;
+    font-size: 0.875rem;
+}
+
+.document-upload input[type="file"]::file-selector-button {
+    margin-right: 0.875rem;
+    padding: 0.5rem 0.75rem;
+    border: 0;
+    border-radius: 4px;
+    background-color: #e2e8f0;
+    color: #334155;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.document-upload input[type="file"]:focus-visible,
+.document-upload button:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 3px;
+}
+
+.document-upload button {
+    padding: 0.625rem 1rem;
+    border: 0;
+    border-radius: 6px;
+    background-color: #2563eb;
+    color: #ffffff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.document-upload button:hover:not(:disabled) {
+    background-color: #1d4ed8;
+}
+
+.document-upload button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.document-upload .upload-message {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #475569;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+    .document-upload {
+        padding: 0.75rem;
+    }
+
+    .document-upload button {
+        width: 100%;
+    }
+}
+
+.document-upload-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.document-upload .clear-button {
+    background-color: #e2e8f0;
+    color: #334155;
+}
+
+.document-upload .clear-button:hover:not(:disabled) {
+    background-color: #cbd5e1;
+}
+
+@media (max-width: 480px) {
+    .document-upload-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+}
