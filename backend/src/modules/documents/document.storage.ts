@@ -1,7 +1,12 @@
 import { randomUUID } from 'node:crypto'
-import { mkdir, writeFile } from 'node:fs/promises'
+import {
+    mkdir,
+    readFile,
+    unlink,
+    writeFile,
+} from 'node:fs/promises'
 import path from 'node:path'
-import { unlink } from 'node:fs/promises'
+
 
 const storageDirectory = path.resolve(
     'storage',
@@ -31,5 +36,16 @@ export async function deleteDocument(
 ): Promise<void> {
     await unlink(
         path.join(storageDirectory, storageKey),
+    )
+}
+
+export function readDocument(
+    storageKey: string,
+): Promise<Buffer> {
+    return readFile(
+        path.join(
+            storageDirectory,
+            storageKey,
+        ),
     )
 }

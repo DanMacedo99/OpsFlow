@@ -27,6 +27,16 @@ const envSchema = z.object({
             32,
             'SESSION_SECRET must contain at least 32 characters.',
         ),
+
+    OPENAI_API_KEY: z
+        .string()
+        .min(1)
+        .optional(),
+
+    GEMINI_API_KEY: z
+        .string()
+        .min(1)
+        .optional(),
 })
 
 export const env = envSchema.parse(process.env)

@@ -21,6 +21,7 @@ import {
 } from '../documents/document.upload.js'
 
 import {
+    analyzeSupplierDocument,
     uploadSupplierDocument,
 } from '../documents/document.controller.js'
 
@@ -55,6 +56,15 @@ supplierRouter.post(
     ),
     uploadDocument.single('document'),
     uploadSupplierDocument,
+)
+
+supplierRouter.post(
+    '/:supplierId/documents/:documentId/analyze',
+    requireRole(
+        'admin',
+        'risk_manager',
+    ),
+    analyzeSupplierDocument,
 )
 
 supplierRouter.use(

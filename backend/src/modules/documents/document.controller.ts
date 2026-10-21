@@ -2,7 +2,7 @@ import type {
     Request,
     Response,
 } from 'express'
-import { createDocument } from './document.service.js'
+import { createDocument, analyzeStoredDocument } from './document.service.js'
 import { getSupplierById } from '../suppliers/supplier.service.js'
 import { getAuthenticatedOrganizationId } from '../auth/authSession.js'
 
@@ -67,5 +67,42 @@ export async function uploadSupplierDocument(
     response.status(201).json({
         message: 'Document uploaded successfully.',
         documentId,
+    })
+}
+
+export async function analyzeSupplierDocument(
+    request: Request,
+    response: Response,
+): Promise<void> {
+    const supplierId =
+        request.params.supplierId
+
+    const documentId =
+        request.params.documentId
+
+    if (
+        typeof supplierId !== 'string' ||
+        typeof documentId !== 'string'
+    ) {
+        response.status(400).json({
+            message: 'Invalid supplier or document ID.',
+        })
+        return
+    }
+
+    const organizationId =
+        getAuthenticatedOrganizationId(
+            request,
+        )
+
+    const analysis =
+        await analyzeStoredDocument(
+            documentId,
+            supplierId,
+            organizationId,
+        )
+
+    response.status(200).json({
+        analysis,
     })
 }

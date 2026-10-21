@@ -16,32 +16,50 @@
     color: #334155;
 }
 
-.document-upload input[type="file"] {
+.document-upload input[type='file'] {
     width: 100%;
-    max-width: 100%;
-    padding: 0.625rem;
-    border: 1px dashed #cbd5e1;
-    border-radius: 6px;
-    background-color: #ffffff;
     color: #475569;
-    font-size: 0.875rem;
 }
 
-.document-upload input[type="file"]::file-selector-button {
-    margin-right: 0.875rem;
-    padding: 0.5rem 0.75rem;
-    border: 0;
-    border-radius: 4px;
-    background-color: #e2e8f0;
-    color: #334155;
-    font-weight: 500;
+.document-upload input[type='file']::file-selector-button {
+    margin-right: 0.75rem;
+    padding: 0.65rem 1rem;
+
+    border: none;
+    border-radius: 0.5rem;
+
+    background-color: #2563eb;
+    color: #ffffff;
+
+    font: inherit;
+    font-weight: 600;
+
     cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        opacity 0.2s ease;
 }
 
-.document-upload input[type="file"]:focus-visible,
-.document-upload button:focus-visible {
+.document-upload input[type='file']:not(:disabled)::file-selector-button:hover {
+    background-color: #1d4ed8;
+}
+
+.document-upload input[type='file']:focus-visible::file-selector-button {
     outline: 2px solid #2563eb;
-    outline-offset: 3px;
+    outline-offset: 2px;
+}
+
+.document-upload input[type='file']:disabled {
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.document-upload input[type='file']:disabled::file-selector-button {
+    background-color: #cbd5e1;
+    color: #64748b;
+    cursor: not-allowed;
+    opacity: 0.75;
 }
 
 .document-upload button {
@@ -101,4 +119,124 @@
         width: 100%;
         flex-direction: column;
     }
+}
+
+.document-analysis {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.document-analysis > h3 {
+    margin-bottom: 1rem;
+}
+
+.analysis-section {
+    margin-bottom: 1.5rem;
+}
+
+.analysis-section h4 {
+    margin-bottom: 0.5rem;
+    color: #334155;
+}
+
+.analysis-section p {
+    margin: 0.35rem 0;
+    line-height: 1.5;
+}
+
+.analysis-section ul {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    margin: 0;
+    padding: 0;
+
+    list-style: none;
+}
+
+.analysis-section li {
+    padding: 1rem;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+
+    background-color: #f8fafc;
+}
+
+.risk-severity {
+    display: inline-block;
+
+    margin: 0.5rem 0;
+    padding: 0.2rem 0.55rem;
+
+    border-radius: 999px;
+
+    font-size: 0.8rem;
+    font-weight: 600;
+
+    text-transform: uppercase;
+}
+
+.risk-severity-low {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.risk-severity-medium {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.risk-severity-high {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.risk-severity-critical {
+    background-color: #7f1d1d;
+    color: #ffffff;
+}
+
+.risk-severity-unknown {
+    background-color: #e2e8f0;
+    color: #475569;
+}
+
+.analysis-review {
+    margin-top: 1.5rem;
+    padding: 1rem;
+
+    border: 1px solid #cbd5e1;
+    border-radius: 0.5rem;
+
+    background-color: #f8fafc;
+}
+
+.analysis-review h4 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+}
+
+.analysis-review-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    margin-top: 1rem;
+
+    cursor: pointer;
+}
+
+.analysis-review-control input {
+    width: 1rem;
+    height: 1rem;
+}
+
+.analysis-reviewed-message {
+    margin-top: 0.75rem;
+
+    font-weight: 600;
+    color: #166534;
 }

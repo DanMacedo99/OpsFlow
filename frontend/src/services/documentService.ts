@@ -5,6 +5,38 @@ type UploadDocumentResponse = {
     documentId: string
 }
 
+export type DocumentAnalysis = {
+    supplier: string
+    overallStatus: string
+    summary: string
+
+    risks: {
+        title: string
+        severity:
+            | 'low'
+            | 'medium'
+            | 'high'
+            | 'critical'
+            | 'unknown'
+        description: string
+        pages: number[]
+    }[]
+
+    inconsistencies: {
+        description: string
+        pages: number[]
+    }[]
+
+    missingEvidence: {
+        description: string
+        pages: number[]
+    }[]
+}
+
+type AnalyzeDocumentResponse = {
+    analysis: DocumentAnalysis
+}
+
 export async function uploadSupplierDocument(
     supplierId: string,
     file: File,
@@ -28,4 +60,31 @@ export async function uploadSupplierDocument(
     }
 
     return (await response.json()) as UploadDocumentResponse
+}
+
+export async function analyzeSupplierDocument(
+    supplierId: string,
+    documentId: string,
+): Promise<DocumentAnalysis> {
+    const response = await apiFetch(
+        `/suppliers/${encodeURIComponent(
+            supplierId,
+        )}/documents/${encodeURIComponent(
+            documentId,
+        )}/analyze`,
+        {
+            method: 'POST',
+        },
+    )
+
+    if (!response.ok) {
+        throw new Error(
+            `Could not analyze document. Status: ${response.status}`,
+        )
+    }
+
+    const data =
+        (await response.json()) as AnalyzeDocumentResponse
+
+    return data.analysis
 }
