@@ -1,35 +1,40 @@
 import { runInTransaction } from '../../config/database.js'
-import { insertDocument } from './document.repository.js'
 import {
+    readDocument,
     saveDocument,
     deleteDocument,
 } from './document.storage.js'
 
-import { prepareDocumentText } from './document.processing.js'
+import { aiConfig } from '../../ai/ai.config.js'
 
 import {
-    findDocumentById,
-} from './document.repository.js'
-
-import {
-    readDocument,
-} from './document.storage.js'
+    buildDocumentContext,
+    prepareDocumentText
+} from './document.processing.js'
 
 import {
     extractPdfText,
 } from './document.parser.js'
 
-import {
-    buildDocumentContext,
-} from './document.processing.js'
 
 import {
     analyzeDocumentContext,
 } from './document.ai.service.js'
 
-import type {
-    DocumentAnalysis,
+import {
+    insertDocumentAnalysis,
+    findDocumentAnalyses,
+    insertDocument,
+    findDocumentById,
+    findDocumentsBySupplier,
+    type DocumentListItem,
+} from './document.repository.js'
+
+import {
+    documentAnalysisSchema,
+    type DocumentAnalysis,
 } from './document.analysis.schema.js'
+
 import { AppError } from '../../errors/AppError.js'
 
 type UploadDocumentInput = {
@@ -41,6 +46,19 @@ type UploadDocumentInput = {
     buffer: Buffer
 }
 
+type AnalyzeStoredDocumentResult = {
+    analysisId: string
+    analysis: DocumentAnalysis
+}
+
+export type StoredDocumentAnalysis = {
+    id: string
+    provider: string
+    model: string
+    createdAt: Date
+    analysis: DocumentAnalysis
+}
+
 
 export async function createDocument(
     input: UploadDocumentInput,
@@ -49,29 +67,29 @@ export async function createDocument(
     try {
         const pages = await extractPdfText(input.buffer)
 
-      const hasText = pages.some(
-        (page) => Boolean(prepareDocumentText(page.text)),
-    )
+        const hasText = pages.some(
+            (page) => Boolean(prepareDocumentText(page.text)),
+        )
 
-    if (!hasText) {
+        if (!hasText) {
+            throw new AppError(
+                400,
+                'PDF_TEXT_NOT_FOUND',
+                'The PDF does not contain extractable text.',
+            )
+        }
+
+    } catch (error) {
+        if (error instanceof AppError) {
+            throw error
+        }
+
         throw new AppError(
             400,
-            'PDF_TEXT_NOT_FOUND',
-            'The PDF does not contain extractable text.',
+            'INVALID_PDF',
+            'The PDF could not be processed.',
         )
     }
- 
-} catch (error) {
-    if (error instanceof AppError) {
-        throw error
-    }
-
-    throw new AppError(
-        400,
-        'INVALID_PDF',
-        'The PDF could not be processed.',
-    )
-}
 
     const storageKey = await saveDocument(input.buffer)
 
@@ -105,11 +123,65 @@ export async function createDocument(
 
 }
 
+export async function listSupplierDocuments(
+    supplierId: string,
+    organizationId: string,
+): Promise<DocumentListItem[]> {
+    return runInTransaction(
+        async (client) =>
+            findDocumentsBySupplier(
+                client,
+                supplierId,
+                organizationId,
+            ),
+    )
+}
+
+export async function listDocumentAnalyses(
+    documentId: string,
+    supplierId: string,
+    organizationId: string,
+): Promise<StoredDocumentAnalysis[]> {
+    const rows =
+        await runInTransaction(
+            async (client) =>
+                findDocumentAnalyses(
+                    client,
+                    documentId,
+                    supplierId,
+                    organizationId,
+                ),
+        )
+
+    return rows.map((row) => {
+        const parsed =
+            documentAnalysisSchema.safeParse(
+                row.analysis,
+            )
+
+        if (!parsed.success) {
+            throw new AppError(
+                500,
+                'INVALID_STORED_ANALYSIS',
+                'A stored document analysis is invalid.',
+            )
+        }
+
+        return {
+            id: row.id,
+            provider: row.provider,
+            model: row.model,
+            createdAt: row.createdAt,
+            analysis: parsed.data,
+        }
+    })
+}
+
 export async function analyzeStoredDocument(
     documentId: string,
     supplierId: string,
     organizationId: string,
-): Promise<DocumentAnalysis> {
+): Promise<AnalyzeStoredDocumentResult> {
     const document =
         await runInTransaction(
             async (client) =>
@@ -148,7 +220,29 @@ export async function analyzeStoredDocument(
         )
     }
 
-    return analyzeDocumentContext(
-        documentContext,
-    )
+    const analysis =
+        await analyzeDocumentContext(
+            documentContext,
+        )
+
+    const analysisId =
+        await runInTransaction(
+            async (client) =>
+                insertDocumentAnalysis(
+                    client,
+                    {
+                        organizationId,
+                        supplierId,
+                        documentId,
+                        provider: aiConfig.provider,
+                        model: aiConfig.model,
+                        analysis,
+                    },
+                ),
+        )
+
+    return {
+        analysisId,
+        analysis,
+    }
 }

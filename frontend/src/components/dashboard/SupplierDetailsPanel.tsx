@@ -11,6 +11,9 @@ import type {
 } from '../../types/riskAssessment'
 import './SupplierDetailsPanel.css'
 import DocumentUpload from '../documents/DocumentUpload'
+import {
+    DocumentList,
+} from '../documents/DocumentList'
 
 type SupplierDetailsPanelProps = {
     supplier: Supplier
@@ -138,10 +141,16 @@ function SupplierDetailsPanel({
                 <div className="supplier-documents">
                     <h3>Compliance Documents</h3>
 
-                    <DocumentUpload
-                        key={supplier.id}
+                    <DocumentList
                         supplierId={supplier.id}
                     />
+
+                    {canEdit && (
+                        <DocumentUpload
+                            key={supplier.id}
+                            supplierId={supplier.id}
+                        />
+                    )}
                 </div>
             )}
             {canDelete && isConfirmingDelete && (

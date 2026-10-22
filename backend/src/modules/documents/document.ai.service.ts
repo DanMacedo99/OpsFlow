@@ -1,5 +1,6 @@
 import { getGeminiClient } from '../../ai/gemini.client.js'
 import { AppError } from '../../errors/AppError.js'
+import { aiConfig } from '../../ai/ai.config.js'
 
 import {
     documentAnalysisSchema,
@@ -21,7 +22,7 @@ export async function analyzeDocumentContext(
 
     const response =
         await client.models.generateContent({
-            model: 'gemini-3.5-flash-lite',
+            model: aiConfig.model,
 
             contents: `
 You are analysing a supplier compliance document.
@@ -209,3 +210,4 @@ ${documentContext}
 
     return result.data
 }
+

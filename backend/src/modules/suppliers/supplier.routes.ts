@@ -8,6 +8,7 @@ import {
     updateSupplier,
     deleteSupplier,
 } from './supplier.controller.js'
+
 import {
     requireRole,
 } from '../../middlewares/requireRole.js'
@@ -21,8 +22,10 @@ import {
 } from '../documents/document.upload.js'
 
 import {
+     getDocumentAnalyses,
     analyzeSupplierDocument,
     uploadSupplierDocument,
+    getSupplierDocuments,
 } from '../documents/document.controller.js'
 
 export const supplierRouter = Router()
@@ -58,6 +61,15 @@ supplierRouter.post(
     uploadSupplierDocument,
 )
 
+supplierRouter.get(
+    '/:supplierId/documents',
+    requireRole(
+        'admin',
+        'risk_manager',
+    ),
+    getSupplierDocuments,
+)
+
 supplierRouter.post(
     '/:supplierId/documents/:documentId/analyze',
     requireRole(
@@ -65,6 +77,15 @@ supplierRouter.post(
         'risk_manager',
     ),
     analyzeSupplierDocument,
+)
+
+supplierRouter.get(
+    '/:supplierId/documents/:documentId/analyses',
+    requireRole(
+        'admin',
+        'risk_manager',
+    ),
+    getDocumentAnalyses,
 )
 
 supplierRouter.use(
