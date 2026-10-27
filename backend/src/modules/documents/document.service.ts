@@ -5,12 +5,28 @@ import {
     deleteDocument,
 } from './document.storage.js'
 
+import {
+    getSupplierById,
+} from '../suppliers/supplier.service.js'
+
+import {
+    qualifyDocumentContext,
+} from './document.qualification.service.js'
+
+import type {
+    DocumentQualification,
+} from './document.qualification.schema.js'
+
 import { aiConfig } from '../../ai/ai.config.js'
 
 import {
     buildDocumentContext,
     prepareDocumentText
 } from './document.processing.js'
+
+import {
+    calculateDocumentHash,
+} from './document.hash.js'
 
 import {
     extractPdfText,
@@ -23,6 +39,7 @@ import {
 
 import {
     insertDocumentAnalysis,
+    findDocumentByHash,
     findDocumentAnalyses,
     insertDocument,
     findDocumentById,
@@ -46,10 +63,17 @@ type UploadDocumentInput = {
     buffer: Buffer
 }
 
-type AnalyzeStoredDocumentResult = {
-    analysisId: string
-    analysis: DocumentAnalysis
-}
+type AnalyzeStoredDocumentResult =
+    | {
+        status: 'rejected'
+        qualification: DocumentQualification
+    }
+    | {
+        status: 'completed'
+        qualification: DocumentQualification
+        analysisId: string
+        analysis: DocumentAnalysis
+    }
 
 export type StoredDocumentAnalysis = {
     id: string
@@ -60,9 +84,13 @@ export type StoredDocumentAnalysis = {
 }
 
 
+
+
 export async function createDocument(
     input: UploadDocumentInput,
 ): Promise<string> {
+
+
 
     try {
         const pages = await extractPdfText(input.buffer)
@@ -91,6 +119,29 @@ export async function createDocument(
         )
     }
 
+    const contentHash =
+        calculateDocumentHash(input.buffer)
+
+
+    const existingDocumentId =
+        await runInTransaction(
+            async (client) =>
+                findDocumentByHash(
+                    client,
+                    input.organizationId,
+                    input.supplierId,
+                    contentHash,
+                ),
+        )
+
+    if (existingDocumentId) {
+        throw new AppError(
+            409,
+            'DUPLICATE_DOCUMENT',
+            'This document has already been uploaded for this supplier.',
+        )
+    }
+
     const storageKey = await saveDocument(input.buffer)
 
     try {
@@ -103,6 +154,7 @@ export async function createDocument(
                     storageKey,
                     mimeType: input.mimeType,
                     sizeBytes: input.sizeBytes,
+                    contentHash,
                 })
             },
         )
@@ -220,6 +272,39 @@ export async function analyzeStoredDocument(
         )
     }
 
+    const supplier =
+        await getSupplierById(
+            supplierId,
+            organizationId,
+        )
+
+    if (!supplier) {
+        throw new AppError(
+            404,
+            'SUPPLIER_NOT_FOUND',
+            'Supplier not found.',
+        )
+    }
+
+    const qualification =
+        await qualifyDocumentContext(
+            documentContext,
+            supplier.name,
+        )
+
+    const canAnalyze =
+        qualification.supplierMatch === 'match' &&
+        qualification.relevance === 'relevant'
+
+    if (!canAnalyze) {
+        return {
+            status: 'rejected',
+            qualification,
+        }
+    }
+
+
+
     const analysis =
         await analyzeDocumentContext(
             documentContext,
@@ -242,6 +327,8 @@ export async function analyzeStoredDocument(
         )
 
     return {
+        status: 'completed',
+        qualification,
         analysisId,
         analysis,
     }

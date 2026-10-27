@@ -3,6 +3,7 @@ import {
     analyzeSupplierDocument,
     uploadSupplierDocument,
     type DocumentAnalysis,
+    type DocumentQualification,
 } from '../../services/documentService'
 
 import './DocumentUpload.css'
@@ -36,6 +37,13 @@ export default function DocumentUpload({
 
     const [isReviewed, setIsReviewed] =
         useState(false)
+
+    const [
+        qualification,
+        setQualification,
+    ] = useState<DocumentQualification | null>(
+        null,
+    )
 
     const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -107,7 +115,22 @@ export default function DocumentUpload({
                     documentId,
                 )
 
-            setAnalysis(result)
+            setQualification(
+                result.qualification,
+            )
+
+            if (result.status === 'rejected') {
+                setAnalysis(null)
+
+                setMessage(
+                    'This document cannot be used for supplier compliance analysis.',
+                )
+
+                return
+            }
+
+            setAnalysis(result.analysis)
+            setMessage('')
             setIsReviewed(false)
         } catch {
             setMessage(
@@ -177,6 +200,38 @@ export default function DocumentUpload({
 
             {message && (
                 <p className="upload-message" role="status">{message}</p>
+            )}
+
+            {qualification && (
+                <section className="document-qualification">
+                    <h4>Document Qualification</h4>
+
+                    <p>
+                        <strong>Detected supplier:</strong>{' '}
+                        {qualification.detectedSupplier ??
+                            'Not identified'}
+                    </p>
+
+                    <p>
+                        <strong>Document type:</strong>{' '}
+                        {qualification.documentType}
+                    </p>
+
+                    <p>
+                        <strong>Supplier match:</strong>{' '}
+                        {qualification.supplierMatch}
+                    </p>
+
+                    <p>
+                        <strong>Relevance:</strong>{' '}
+                        {qualification.relevance}
+                    </p>
+
+                    <p>
+                        <strong>Reason:</strong>{' '}
+                        {qualification.reason}
+                    </p>
+                </section>
             )}
 
             {analysis && (

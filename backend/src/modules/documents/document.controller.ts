@@ -133,14 +133,20 @@ export async function analyzeSupplierDocument(
             request,
         )
 
-   const result =
-    await analyzeStoredDocument(
-        documentId,
-        supplierId,
-        organizationId,
-    )
 
-response.status(200).json(result)
+    const result =
+        await analyzeStoredDocument(
+            documentId,
+            supplierId,
+            organizationId,
+        )
+
+    if (result.status === 'rejected') {
+        response.status(422).json(result)
+        return
+    }
+
+    response.status(200).json(result)
 }
 
 export async function getDocumentAnalyses(

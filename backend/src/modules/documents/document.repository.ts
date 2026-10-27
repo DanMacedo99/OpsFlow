@@ -10,6 +10,7 @@ export type CreateDocumentInput = {
     storageKey: string
     mimeType: string
     sizeBytes: number
+    contentHash: string
 }
 
 export type DocumentListItem = {
@@ -60,9 +61,10 @@ export async function insertDocument(
             original_name,
             storage_key,
             mime_type,
-            size_bytes
+            size_bytes,
+            content_hash
         )
-        VALUES ($1, $2, $3, $4, $5, $6)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING id
         `,
         [
@@ -72,6 +74,7 @@ export async function insertDocument(
             input.storageKey,
             input.mimeType,
             input.sizeBytes,
+            input.contentHash,
         ],
     )
 
@@ -141,6 +144,32 @@ export async function findDocumentById(
         )
 
     return result.rows[0] ?? null
+}
+
+export async function findDocumentByHash(
+    client: PoolClient,
+    organizationId: string,
+    supplierId: string,
+    contentHash: string,
+): Promise<string | null> {
+    const result =
+        await client.query<{ id: string }>(
+            `
+            SELECT id
+            FROM supplier_documents
+            WHERE organization_id = $1
+              AND supplier_id = $2
+              AND content_hash = $3
+            LIMIT 1
+            `,
+            [
+                organizationId,
+                supplierId,
+                contentHash,
+            ],
+        )
+
+    return result.rows[0]?.id ?? null
 }
 
 export async function findDocumentsBySupplier(

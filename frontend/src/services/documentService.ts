@@ -5,6 +5,20 @@ type UploadDocumentResponse = {
     documentId: string
 }
 
+export type DocumentQualification = {
+    detectedSupplier: string | null
+    supplierMatch:
+        | 'match'
+        | 'mismatch'
+        | 'uncertain'
+    relevance:
+        | 'relevant'
+        | 'irrelevant'
+        | 'uncertain'
+    documentType: string
+    reason: string
+}
+
 export type SupplierDocument = {
     id: string
     originalName: string
@@ -45,9 +59,18 @@ export type DocumentAnalysis = {
     }[]
 }
 
-type AnalyzeDocumentResponse = {
-    analysis: DocumentAnalysis
-}
+type AnalyzeDocumentResponse =
+    | {
+          status: 'completed'
+          qualification: DocumentQualification
+          analysisId: string
+          analysis: DocumentAnalysis
+      }
+    | {
+          status: 'rejected'
+          qualification: DocumentQualification
+      }
+
 
 export type StoredDocumentAnalysis = {
     id: string
@@ -110,7 +133,7 @@ export async function uploadSupplierDocument(
 export async function analyzeSupplierDocument(
     supplierId: string,
     documentId: string,
-): Promise<DocumentAnalysis> {
+): Promise<AnalyzeDocumentResponse> {
     const response = await apiFetch(
         `/suppliers/${encodeURIComponent(
             supplierId,
@@ -122,16 +145,16 @@ export async function analyzeSupplierDocument(
         },
     )
 
-    if (!response.ok) {
+    if (
+        !response.ok &&
+        response.status !== 422
+    ) {
         throw new Error(
             `Could not analyze document. Status: ${response.status}`,
         )
     }
 
-    const data =
-        (await response.json()) as AnalyzeDocumentResponse
-
-    return data.analysis
+    return (await response.json()) as AnalyzeDocumentResponse
 }
 
 export async function getDocumentAnalyses(
