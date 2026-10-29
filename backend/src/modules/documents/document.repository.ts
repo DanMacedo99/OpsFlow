@@ -47,6 +47,40 @@ export type StoredDocumentAnalysisRow = {
     model: string
     analysis: unknown
     createdAt: Date
+
+    reviewId: string | null
+    reviewStatus:
+    | 'accepted'
+    | 'rejected'
+    | 'needs_follow_up'
+    | null
+    reviewedBy: string | null
+    reviewComment: string | null
+    reviewedAt: Date | null
+}
+
+export type DocumentReviewRow = {
+    id: string
+    analysisId: string
+    reviewStatus:
+    | 'accepted'
+    | 'rejected'
+    | 'needs_follow_up'
+    reviewedBy: string
+    reviewComment: string | null
+    reviewedAt: Date
+}
+
+export type SaveDocumentReviewInput = {
+    organizationId: string
+    supplierId: string
+    analysisId: string
+    reviewStatus:
+    | 'accepted'
+    | 'rejected'
+    | 'needs_follow_up'
+    reviewedBy: string
+    reviewComment: string | null
 }
 
 export async function insertDocument(
@@ -209,18 +243,32 @@ export async function findDocumentAnalyses(
     const result =
         await client.query<StoredDocumentAnalysisRow>(
             `
-            SELECT
-                id,
-                provider,
-                model,
-                analysis,
-                created_at AS "createdAt"
-            FROM supplier_document_analyses
-            WHERE document_id = $1
-              AND supplier_id = $2
-              AND organization_id = $3
-            ORDER BY created_at DESC
-            `,
+        SELECT
+            a.id,
+            a.provider,
+            a.model,
+            a.analysis,
+            a.created_at AS "createdAt",
+
+            r.id AS "reviewId",
+            r.review_status AS "reviewStatus",
+            r.reviewed_by AS "reviewedBy",
+            r.review_comment AS "reviewComment",
+            r.reviewed_at AS "reviewedAt"
+
+        FROM supplier_document_analyses a
+
+        LEFT JOIN supplier_document_analysis_reviews r
+            ON r.analysis_id = a.id
+            AND r.organization_id = a.organization_id
+            AND r.supplier_id = a.supplier_id
+
+        WHERE a.document_id = $1
+          AND a.supplier_id = $2
+          AND a.organization_id = $3
+
+        ORDER BY a.created_at DESC
+        `,
             [
                 documentId,
                 supplierId,
@@ -229,4 +277,107 @@ export async function findDocumentAnalyses(
         )
 
     return result.rows
+}
+
+export async function upsertDocumentReview(
+    client: PoolClient,
+    input: SaveDocumentReviewInput,
+): Promise<DocumentReviewRow> {
+    const result =
+        await client.query<DocumentReviewRow>(
+            `
+            INSERT INTO supplier_document_analysis_reviews (
+                organization_id,
+                supplier_id,
+                analysis_id,
+                review_status,
+                reviewed_by,
+                review_comment
+            )
+            VALUES ($1, $2, $3, $4, $5, $6)
+
+            ON CONFLICT (analysis_id)
+            DO UPDATE SET
+                review_status = EXCLUDED.review_status,
+                reviewed_by = EXCLUDED.reviewed_by,
+                review_comment = EXCLUDED.review_comment,
+                reviewed_at = CURRENT_TIMESTAMP
+
+            RETURNING
+                id,
+                analysis_id AS "analysisId",
+                review_status AS "reviewStatus",
+                reviewed_by AS "reviewedBy",
+                review_comment AS "reviewComment",
+                reviewed_at AS "reviewedAt"
+            `,
+            [
+                input.organizationId,
+                input.supplierId,
+                input.analysisId,
+                input.reviewStatus,
+                input.reviewedBy,
+                input.reviewComment,
+            ],
+        )
+
+    return result.rows[0]
+}
+
+export async function findDocumentReview(
+    client: PoolClient,
+    analysisId: string,
+    supplierId: string,
+    organizationId: string,
+): Promise<DocumentReviewRow | null> {
+    const result =
+        await client.query<DocumentReviewRow>(
+            `
+            SELECT
+                id,
+                analysis_id AS "analysisId",
+                review_status AS "reviewStatus",
+                reviewed_by AS "reviewedBy",
+                review_comment AS "reviewComment",
+                reviewed_at AS "reviewedAt"
+            FROM supplier_document_analysis_reviews
+            WHERE analysis_id = $1
+              AND supplier_id = $2
+              AND organization_id = $3
+            LIMIT 1
+            `,
+            [
+                analysisId,
+                supplierId,
+                organizationId,
+            ],
+        )
+
+    return result.rows[0] ?? null
+}
+
+export async function findDocumentAnalysisById(
+    client: PoolClient,
+    analysisId: string,
+    supplierId: string,
+    organizationId: string,
+): Promise<{ id: string } | null> {
+    const result =
+        await client.query<{ id: string }>(
+            `
+            SELECT id
+            FROM supplier_document_analyses
+            WHERE id = $1
+              AND supplier_id = $2
+              AND organization_id = $3
+            LIMIT 1
+            `,
+            [
+                analysisId,
+                supplierId,
+                organizationId,
+            ],
+        )
+
+    return result.rows[0] ?? null
 }

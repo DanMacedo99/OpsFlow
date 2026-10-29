@@ -8,11 +8,19 @@ import {
     analyzeStoredDocument,
     listSupplierDocuments,
     listDocumentAnalyses,
+    saveDocumentReview,
 } from './document.service.js'
+
+import {
+    documentReviewSchema,
+} from './document.review.schema.js'
 
 import { getSupplierById } from '../suppliers/supplier.service.js'
 
-import { getAuthenticatedOrganizationId } from '../auth/authSession.js'
+import {
+    getAuthenticatedOrganizationId,
+    getAuthenticatedUser
+} from '../auth/authSession.js'
 
 export async function uploadSupplierDocument(
     request: Request,
@@ -43,6 +51,9 @@ export async function uploadSupplierDocument(
     const organizationId =
         getAuthenticatedOrganizationId(request)
 
+    const authenticatedUser =
+        getAuthenticatedUser(request)
+
     const supplierId = request.params.supplierId
 
     if (typeof supplierId !== 'string') {
@@ -66,6 +77,7 @@ export async function uploadSupplierDocument(
     const documentId = await createDocument({
         organizationId,
         supplierId,
+        actorUserId: authenticatedUser.id,
         originalName: file.originalname,
         mimeType: file.mimetype,
         sizeBytes: file.size,
@@ -97,11 +109,15 @@ export async function getSupplierDocuments(
             request,
         )
 
+
+
     const documents =
         await listSupplierDocuments(
             supplierId,
             organizationId,
         )
+
+
 
     response.status(200).json({
         documents,
@@ -133,12 +149,16 @@ export async function analyzeSupplierDocument(
             request,
         )
 
+    const authenticatedUser =
+        getAuthenticatedUser(request)
+
 
     const result =
         await analyzeStoredDocument(
             documentId,
             supplierId,
             organizationId,
+            authenticatedUser.id
         )
 
     if (result.status === 'rejected') {
@@ -184,5 +204,64 @@ export async function getDocumentAnalyses(
 
     response.status(200).json({
         analyses,
+    })
+}
+
+export async function reviewDocumentAnalysis(
+    request: Request,
+    response: Response,
+): Promise<void> {
+    const supplierId =
+        request.params.supplierId
+
+    const analysisId =
+        request.params.analysisId
+
+    if (
+        typeof supplierId !== 'string' ||
+        typeof analysisId !== 'string'
+    ) {
+        response.status(400).json({
+            message:
+                'Invalid supplier or analysis ID.',
+        })
+        return
+    }
+
+    const parsed =
+        documentReviewSchema.safeParse(
+            request.body,
+        )
+
+    if (!parsed.success) {
+        response.status(400).json({
+            error: {
+                code: 'INVALID_REVIEW',
+                message:
+                    'Invalid document review.',
+            },
+        })
+        return
+    }
+
+    const organizationId =
+        getAuthenticatedOrganizationId(
+            request,
+        )
+
+    const authenticatedUser =
+        getAuthenticatedUser(request)
+
+    const review =
+        await saveDocumentReview(
+            analysisId,
+            supplierId,
+            organizationId,
+            authenticatedUser.id,
+            parsed.data,
+        )
+
+    response.status(200).json({
+        review,
     })
 }

@@ -10,6 +10,8 @@ import {
     type SupplierDocument,
 } from '../../services/documentService'
 
+import { DocumentReviewForm } from './DocumentReviewForm'
+
 import './DocumentList.css'
 
 type DocumentListProps = {
@@ -165,9 +167,16 @@ export function DocumentList({
                                     : 'document-list-item'
                             }
                             onClick={() => {
+                                if (
+                                    selectedDocumentId === document.id
+                                ) {
+                                    return
+                                }
+
                                 setSelectedDocumentId(
                                     document.id,
                                 )
+
                                 setAnalyses([])
                                 setAnalysisError(null)
                             }}
@@ -427,6 +436,55 @@ export function DocumentList({
                                             )}
                                         </ul>
                                     )}
+
+
+                                    {storedAnalysis.review ? (
+                                        <section className="document-review">
+                                            <h5>Human Review</h5>
+
+                                            <p>
+                                                <strong>Status:</strong>{' '}
+                                                {storedAnalysis.review.reviewStatus}
+                                            </p>
+
+                                            <p>
+                                                <strong>Reviewed at:</strong>{' '}
+                                                {new Date(
+                                                    storedAnalysis.review.reviewedAt,
+                                                ).toLocaleString()}
+                                            </p>
+
+                                            {storedAnalysis.review.reviewComment && (
+                                                <p>
+                                                    <strong>Comment:</strong>{' '}
+                                                    {storedAnalysis.review.reviewComment}
+                                                </p>
+                                            )}
+                                        </section>
+                                    ) : (
+                                        <p className="document-review-pending">
+                                            No human review yet.
+                                        </p>
+                                    )}
+
+                                    <DocumentReviewForm
+                                        supplierId={supplierId}
+                                        analysisId={storedAnalysis.id}
+                                        currentReview={storedAnalysis.review}
+                                        onReviewSaved={(review) => {
+                                            setAnalyses((currentAnalyses) =>
+                                                currentAnalyses.map((item) =>
+                                                    item.id === storedAnalysis.id
+                                                        ? {
+                                                            ...item,
+                                                            review,
+                                                        }
+                                                        : item,
+                                                ),
+                                            )
+                                        }}
+                                    />
+
                                 </details>
                             )
                         })}

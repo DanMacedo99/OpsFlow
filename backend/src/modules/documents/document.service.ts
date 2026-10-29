@@ -5,6 +5,8 @@ import {
     deleteDocument,
 } from './document.storage.js'
 
+import { insertAuditLog } from '../audit-logs/auditLog.repository.js'
+
 import {
     getSupplierById,
 } from '../suppliers/supplier.service.js'
@@ -37,14 +39,22 @@ import {
     analyzeDocumentContext,
 } from './document.ai.service.js'
 
+import type {
+    DocumentReviewInput,
+} from './document.review.schema.js'
+
 import {
     insertDocumentAnalysis,
+    findDocumentAnalysisById,
+    upsertDocumentReview,
+    findDocumentReview,
     findDocumentByHash,
     findDocumentAnalyses,
     insertDocument,
     findDocumentById,
     findDocumentsBySupplier,
     type DocumentListItem,
+    type DocumentReviewRow,
 } from './document.repository.js'
 
 import {
@@ -57,6 +67,7 @@ import { AppError } from '../../errors/AppError.js'
 type UploadDocumentInput = {
     organizationId: string
     supplierId: string
+    actorUserId: string
     originalName: string
     mimeType: string
     sizeBytes: number
@@ -81,8 +92,19 @@ export type StoredDocumentAnalysis = {
     model: string
     createdAt: Date
     analysis: DocumentAnalysis
+    review: StoredDocumentReview | null
 }
 
+export type StoredDocumentReview = {
+    id: string
+    reviewStatus:
+    | 'accepted'
+    | 'rejected'
+    | 'needs_follow_up'
+    reviewedBy: string
+    reviewComment: string | null
+    reviewedAt: Date
+}
 
 
 
@@ -147,19 +169,43 @@ export async function createDocument(
     try {
         const documentId = await runInTransaction(
             async (client) => {
-                return insertDocument(client, {
-                    organizationId: input.organizationId,
-                    supplierId: input.supplierId,
-                    originalName: input.originalName,
-                    storageKey,
-                    mimeType: input.mimeType,
-                    sizeBytes: input.sizeBytes,
-                    contentHash,
+                const insertedDocumentId =
+                    await insertDocument(client, {
+                        organizationId: input.organizationId,
+                        supplierId: input.supplierId,
+                        originalName: input.originalName,
+                        storageKey,
+                        mimeType: input.mimeType,
+                        sizeBytes: input.sizeBytes,
+                        contentHash,
+                    })
+
+                await insertAuditLog(client, {
+                    organizationId:
+                        input.organizationId,
+                    actorUserId:
+                        input.actorUserId,
+                    action: 'document.uploaded',
+                    entityType: 'document',
+                    entityId: insertedDocumentId,
+                    metadata: {
+                        supplierId:
+                            input.supplierId,
+                        originalName:
+                            input.originalName,
+                        mimeType:
+                            input.mimeType,
+                        sizeBytes:
+                            input.sizeBytes,
+                    },
                 })
+
+                return insertedDocumentId
             },
         )
 
         return documentId
+
     } catch (error) {
         try {
             await deleteDocument(storageKey)
@@ -219,12 +265,28 @@ export async function listDocumentAnalyses(
             )
         }
 
+        const review =
+            row.reviewId === null
+                ? null
+                : {
+                    id: row.reviewId,
+                    reviewStatus:
+                        row.reviewStatus!,
+                    reviewedBy:
+                        row.reviewedBy!,
+                    reviewComment:
+                        row.reviewComment,
+                    reviewedAt:
+                        row.reviewedAt!,
+                }
+
         return {
             id: row.id,
             provider: row.provider,
             model: row.model,
             createdAt: row.createdAt,
             analysis: parsed.data,
+            review,
         }
     })
 }
@@ -233,6 +295,7 @@ export async function analyzeStoredDocument(
     documentId: string,
     supplierId: string,
     organizationId: string,
+    actorUserId: string,
 ): Promise<AnalyzeStoredDocumentResult> {
     const document =
         await runInTransaction(
@@ -310,21 +373,55 @@ export async function analyzeStoredDocument(
             documentContext,
         )
 
-    const analysisId =
-        await runInTransaction(
-            async (client) =>
-                insertDocumentAnalysis(
+    const analysisId = await runInTransaction(
+        async (client) => {
+            const insertedAnalysisId =
+                await insertDocumentAnalysis(
                     client,
                     {
                         organizationId,
                         supplierId,
                         documentId,
-                        provider: aiConfig.provider,
-                        model: aiConfig.model,
+                        provider:
+                            aiConfig.provider,
+                        model:
+                            aiConfig.model,
                         analysis,
                     },
-                ),
-        )
+                )
+
+            await insertAuditLog(client, {
+                organizationId,
+                actorUserId,
+                action:
+                    'document_analysis.completed',
+                entityType:
+                    'document_analysis',
+                entityId:
+                    insertedAnalysisId,
+                metadata: {
+                    supplierId,
+                    documentId,
+                    provider:
+                        aiConfig.provider,
+                    model:
+                        aiConfig.model,
+                    overallStatus:
+                        analysis.overallStatus,
+                    riskCount:
+                        analysis.risks.length,
+                    inconsistencyCount:
+                        analysis.inconsistencies
+                            .length,
+                    missingEvidenceCount:
+                        analysis.missingEvidence
+                            .length,
+                },
+            })
+
+            return insertedAnalysisId
+        },
+    )
 
     return {
         status: 'completed',
@@ -332,4 +429,92 @@ export async function analyzeStoredDocument(
         analysisId,
         analysis,
     }
+}
+
+export async function saveDocumentReview(
+    analysisId: string,
+    supplierId: string,
+    organizationId: string,
+    reviewedBy: string,
+    input: DocumentReviewInput,
+): Promise<DocumentReviewRow> {
+    return runInTransaction(
+        async (client) => {
+            const analysis =
+                await findDocumentAnalysisById(
+                    client,
+                    analysisId,
+                    supplierId,
+                    organizationId,
+                )
+
+            if (!analysis) {
+                throw new AppError(
+                    404,
+                    'DOCUMENT_ANALYSIS_NOT_FOUND',
+                    'Document analysis not found.',
+                )
+            }
+
+            const existingReview =
+                await findDocumentReview(
+                    client,
+                    analysisId,
+                    supplierId,
+                    organizationId,
+                )
+
+            const review =
+                await upsertDocumentReview(
+                    client,
+                    {
+                        organizationId,
+                        supplierId,
+                        analysisId,
+                        reviewStatus:
+                            input.reviewStatus,
+                        reviewedBy,
+                        reviewComment:
+                            input.reviewComment ??
+                            null,
+                    },
+                )
+
+
+            await insertAuditLog(client, {
+                organizationId,
+                actorUserId: reviewedBy,
+
+                action: existingReview
+                    ? 'document_analysis.review_updated'
+                    : 'document_analysis.reviewed',
+
+                entityType:
+                    'document_analysis',
+
+                entityId: analysisId,
+
+                metadata: {
+                    supplierId,
+                    reviewId: review.id,
+
+                    previousStatus:
+                        existingReview?.reviewStatus ??
+                        null,
+
+                    newStatus:
+                        review.reviewStatus,
+
+                    previousComment:
+                        existingReview?.reviewComment ??
+                        null,
+
+                    newComment:
+                        review.reviewComment,
+                },
+            })
+
+            return review
+        },
+    )
 }

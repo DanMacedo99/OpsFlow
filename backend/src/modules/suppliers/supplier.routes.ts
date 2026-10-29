@@ -22,10 +22,11 @@ import {
 } from '../documents/document.upload.js'
 
 import {
-     getDocumentAnalyses,
+    getDocumentAnalyses,
     analyzeSupplierDocument,
     uploadSupplierDocument,
     getSupplierDocuments,
+    reviewDocumentAnalysis,
 } from '../documents/document.controller.js'
 
 export const supplierRouter = Router()
@@ -86,6 +87,12 @@ supplierRouter.get(
         'risk_manager',
     ),
     getDocumentAnalyses,
+)
+
+supplierRouter.put(
+    '/:supplierId/documents/analyses/:analysisId/review',
+    requireRole('admin', 'reviewer'),
+    reviewDocumentAnalysis,
 )
 
 supplierRouter.use(

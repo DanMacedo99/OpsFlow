@@ -7,6 +7,10 @@ export const auditActions = [
     'risk_assessment.created',
     'risk_assessment.decision_updated',
     'risk_assessment.document_status_updated',
+    'document_analysis.completed',
+    'document_analysis.reviewed',
+    'document_analysis.review_updated',
+    'document.uploaded',
 ] as const
 
 export type AuditAction =
@@ -16,6 +20,8 @@ export const auditEntityTypes = [
     'user',
     'supplier',
     'risk_assessment',
+    'document_analysis',
+    'document',
 ] as const
 
 export type AuditEntityType =

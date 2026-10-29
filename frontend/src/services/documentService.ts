@@ -5,6 +5,14 @@ type UploadDocumentResponse = {
     documentId: string
 }
 
+export type DocumentReviewInput = {
+    reviewStatus:
+        | 'accepted'
+        | 'rejected'
+        | 'needs_follow_up'
+    reviewComment?: string | null
+}
+
 export type DocumentQualification = {
     detectedSupplier: string | null
     supplierMatch:
@@ -71,13 +79,23 @@ type AnalyzeDocumentResponse =
           qualification: DocumentQualification
       }
 
-
 export type StoredDocumentAnalysis = {
     id: string
     provider: string
     model: string
     createdAt: string
     analysis: DocumentAnalysis
+    review: StoredDocumentReview | null
+}
+export type StoredDocumentReview = {
+    id: string
+    reviewStatus:
+        | 'accepted'
+        | 'rejected'
+        | 'needs_follow_up'
+    reviewedBy: string
+    reviewComment: string | null
+    reviewedAt: string
 }
 
 type DocumentAnalysesResponse = {
@@ -179,4 +197,37 @@ export async function getDocumentAnalyses(
         (await response.json()) as DocumentAnalysesResponse
 
     return data.analyses
+}
+
+export async function reviewDocumentAnalysis(
+    supplierId: string,
+    analysisId: string,
+    input: DocumentReviewInput,
+): Promise<StoredDocumentReview> {
+    const response = await apiFetch(
+        `/suppliers/${encodeURIComponent(
+            supplierId,
+        )}/documents/analyses/${encodeURIComponent(
+            analysisId,
+        )}/review`,
+        {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(input),
+        },
+    )
+
+    if (!response.ok) {
+        throw new Error(
+            `Could not review document analysis. Status: ${response.status}`,
+        )
+    }
+
+    const data = (await response.json()) as {
+        review: StoredDocumentReview
+    }
+
+    return data.review
 }

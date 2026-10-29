@@ -10,6 +10,20 @@ Content-Type: application/json
 ###
 GET http://localhost:3000/auth/me
 
+### ANALYSIS ID
+GET http://localhost:3000/suppliers/SUP-4F88CE4F/documents/a0bf52df-309d-4432-9e0f-08976796a9f3/analyses
+
+
+### REVIEW DOCUMENT ANALYSIS
+PUT http://localhost:3000/suppliers/SUP-4F88CE4F/documents/analyses/1e663cc0-6d54-47ec-8841-687937b389ae/review
+Content-Type: application/json
+
+{
+  "reviewStatus": "needs_follow_up",
+  "reviewComment": "Evidence reviewed and findings are consistent."
+}
+
+
 ### Login admin organization 2
 POST http://localhost:3000/auth/login
 Content-Type: application/json
