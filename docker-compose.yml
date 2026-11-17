@@ -37,17 +37,14 @@ services:
       NODE_ENV: development
       PORT: 3000
 
-      PGHOST: postgres
-      PGPORT: 5432
-      PGDATABASE: ${POSTGRES_DB}
-      PGUSER: ${POSTGRES_USER}
-      PGPASSWORD: ${POSTGRES_PASSWORD}
-
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
 
-      CORS_ORIGIN: http://localhost:5173
+      CORS_ORIGIN: ${FRONTEND_URL}
       SESSION_SECRET: ${SESSION_SECRET}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
+
+      TRUST_PROXY: "false"
+      SESSION_COOKIE_SAME_SITE: lax
 
     ports:
       - "3000:3000"
@@ -66,20 +63,15 @@ services:
   frontend:
     build:
       context: ./frontend
-
+      args:
+        VITE_API_URL: ${BACKEND_URL}
     image: opsflow-frontend
-
-    environment:
-      VITE_API_URL: http://localhost:3000
-
     ports:
-      - "5173:5173"
-
+    - "5173:80"
     depends_on:
-      - backend
-
+    - backend
     networks:
-      - opsflow_network
+    - opsflow_network
 
 
 volumes:

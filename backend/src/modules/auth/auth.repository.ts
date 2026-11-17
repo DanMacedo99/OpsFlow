@@ -132,6 +132,7 @@ export async function findUserByEmail(
                     role
                 FROM users
                 WHERE email = $1
+                    AND is_active = true
                 LIMIT 1
             `,
             [email],

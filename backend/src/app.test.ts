@@ -55,7 +55,7 @@ const mockedCreateSupplier =
 
 const mockedListSuppliers =
     vi.mocked(listSuppliers)
-    
+
 const mockedGetSupplierById =
     vi.mocked(getSupplierById)
 
@@ -125,6 +125,10 @@ test('POST /suppliers returns 400 when request body is invalid', async () => {
     const response =
         await request(app)
             .post('/suppliers')
+            .set(
+                'X-OpsFlow-Request',
+                'true',
+            )
             .send({})
 
     expect(response.status).toBe(400)
@@ -132,4 +136,20 @@ test('POST /suppliers returns 400 when request body is invalid', async () => {
     expect(
         mockedCreateSupplier,
     ).not.toHaveBeenCalled()
+})
+
+test('POST /suppliers rejects request without trusted request header', async () => {
+    const response =
+        await request(app)
+            .post('/suppliers')
+            .send({})
+
+    expect(response.status).toBe(403)
+
+    expect(response.body).toEqual({
+        error: {
+            code: 'UNTRUSTED_REQUEST',
+            message: 'Request could not be verified.',
+        },
+    })
 })

@@ -10,10 +10,15 @@ import { userRouter } from './modules/users/user.routes.js'
 import {
     auditLogRouter,
 } from './modules/audit-logs/auditLog.routes.js'
+import {
+    requireTrustedRequest,
+} from './middlewares/requireTrustedRequest.js'
 
 export const app = express()
 
-
+if (env.TRUST_PROXY) {
+    app.set('trust proxy', 1)
+}
 
 
 app.use(
@@ -22,6 +27,10 @@ app.use(
         credentials: true,
     }),
 )
+
+app.use(express.json())
+app.use(sessionMiddleware)
+app.use(requireTrustedRequest)
 
 app.use(express.json())
 app.use(sessionMiddleware)

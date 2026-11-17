@@ -1,9 +1,12 @@
 import pg from 'pg'
 import { PoolClient } from 'pg'
+import { env } from './env.js'
 
 const { Pool } = pg
 
-export const databasePool = new Pool()
+export const databasePool = new Pool({
+    connectionString: env.DATABASE_URL,
+})
 
 databasePool.on('error', (error) => {
     console.error(

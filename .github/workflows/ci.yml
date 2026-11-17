@@ -63,7 +63,9 @@ jobs:
       NODE_ENV: test
       CORS_ORIGIN: http://localhost:5173
       SESSION_SECRET: ci-test-session-secret-with-at-least-32-characters
-
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/opsflow_test
+      TRUST_PROXY: "false"
+      SESSION_COOKIE_SAME_SITE: lax
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6

@@ -2,13 +2,11 @@ import 'dotenv/config'
 import { z } from 'zod'
 
 const envSchema = z.object({
-    NODE_ENV: z
-        .enum([
-            'development',
-            'test',
-            'production',
-        ])
-        .default('development'),
+    NODE_ENV: z.enum([
+        'development',
+        'test',
+        'production',
+    ]),
 
     PORT: z.coerce
         .number()
@@ -17,9 +15,15 @@ const envSchema = z.object({
         .max(65535)
         .default(3000),
 
+    DATABASE_URL: z
+        .string()
+        .min(
+            1,
+            'DATABASE_URL is required.',
+        ),
+
     CORS_ORIGIN: z
-        .url()
-        .default('http://localhost:5173'),
+        .url(),
 
     SESSION_SECRET: z
         .string()
@@ -37,6 +41,18 @@ const envSchema = z.object({
         .string()
         .min(1)
         .optional(),
+    SESSION_COOKIE_SAME_SITE: z.enum([
+        'lax',
+        'strict',
+        'none',
+    ]),
+
+    TRUST_PROXY: z
+        .enum(['true', 'false'])
+        .transform(
+            (value) => value === 'true',
+        ),
+
 })
 
 export const env = envSchema.parse(process.env)

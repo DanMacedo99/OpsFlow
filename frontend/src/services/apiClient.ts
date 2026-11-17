@@ -8,15 +8,20 @@ export async function apiFetch(
     path: string,
     options: RequestInit = {},
 ): Promise<Response> {
+    const headers = new Headers(options.headers)
 
+    headers.set(
+        'X-OpsFlow-Request',
+        'true',
+    )
 
     const response = await fetch(`${apiUrl}${path}`, {
         ...options,
+        headers,
         credentials: 'include',
     })
 
     if (response.status === 401) {
-
         window.dispatchEvent(
             new Event('auth:unauthorized'),
         )
